@@ -1,0 +1,242 @@
+/* ============================================
+   PATRON SIDEBAR - Clean white, right-side
+   ============================================ */
+
+/* Overlay */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 44;
+  transition: opacity 0.3s ease;
+}
+
+/* Sidebar */
+.sidebar {
+  position: sticky;
+  top: 0;
+  width: 170px;
+  min-width: 170px;
+  height: fit-content;
+  max-height: 100vh;
+  background: linear-gradient(180deg, #730051 0%, #5a0040 100%);
+  border-radius: 0 0 0 8px;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-left: none;
+  box-shadow: -4px 0 20px rgba(115, 0, 81, 0.15);
+}
+
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+/* Header */
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+}
+
+.sidebarTitle {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.closeButton {
+  display: none;
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+/* Navigation */
+.nav {
+  flex: 1;
+  padding: 8px 0;
+}
+
+.menuList {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  text-align: left;
+  transition: all 0.15s ease;
+  gap: 10px;
+  border-radius: 8px;
+  margin-bottom: 2px;
+  position: relative;
+}
+
+.menuItem:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.menuItem.active {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.menuIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  color: inherit;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.menuLabel {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ============================================
+   TABLET - Collapsed icons
+   ============================================ */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .sidebar {
+    width: 56px;
+    min-width: 56px;
+    overflow: visible;
+  }
+
+  .sidebarHeader {
+    padding: 12px 8px;
+    justify-content: center;
+  }
+
+  .sidebarTitle { display: none; }
+  .menuList { padding: 0 6px; }
+
+  .menuItem {
+    padding: 8px;
+    justify-content: center;
+  }
+
+  .menuLabel { display: none; }
+
+  .menuIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Tooltips */
+  .menuItem::after {
+    content: attr(data-label);
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #5a0040;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.15s ease;
+    z-index: 1000;
+    pointer-events: none;
+  }
+
+  .menuItem:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* ============================================
+   MOBILE - Slide from right, below headers
+   ============================================ */
+@media (max-width: 768px) {
+  .overlay {
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 116px;
+    right: 0;
+    left: auto;
+    height: auto;
+    max-height: calc(100dvh - 116px);
+    width: auto;
+    min-width: 150px;
+    max-width: 170px;
+    transform: translateX(100%);
+    box-shadow: -2px 4px 16px rgba(115, 0, 81, 0.25);
+    border-left: none;
+    border-radius: 0 0 0 10px;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar.open ~ .overlay,
+  .sidebar.open + .overlay {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .closeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .menuItem {
+    padding: 8px 10px;
+    min-height: 34px;
+    font-size: 12px;
+  }
+
+  .menuLabel { display: inline; }
+}

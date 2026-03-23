@@ -598,6 +598,7 @@ const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isPatron, setIsPatron] = useState(false);
   const [activeSessions, setActiveSessions] = useState<Session[]>([]);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [signingSession, setSigningSession] = useState<Session | null>(null);
@@ -615,6 +616,7 @@ const Header = () => {
     localStorage.clear();
     sessionStorage.clear();
     setIsAdmin(false);
+    setIsPatron(false);
     setUserData(null);
     navigate('/signIn', { replace: true });
   };
@@ -682,12 +684,15 @@ const Header = () => {
           const firstName = data.username?.split(' ')[0] || data.username;
           setUserData({ ...data, username: firstName });
           setIsAdmin(false);
+          setIsPatron(false);
         } else if (localStorage.getItem('adminSession') === 'true') {
           setIsAdmin(true);
+          setIsPatron(localStorage.getItem('patronSession') === 'true');
         }
       } catch {
         if (localStorage.getItem('adminSession') === 'true') {
           setIsAdmin(true);
+          setIsPatron(localStorage.getItem('patronSession') === 'true');
         }
       }
     };
@@ -813,7 +818,14 @@ const Header = () => {
 
             {/* Mobile User/Sign In Button */}
             <div className="md:hidden flex-shrink-0">
-              {isAdmin ? (
+              {isAdmin && isPatron ? (
+                <button onClick={() => navigate('/patron')} className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 bg-white hover:bg-purple-50 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-[#730051] text-white">
+                    <Crown size={12} strokeWidth={2.5} />
+                  </div>
+                  <span className="text-[10px] leading-none tracking-tight">Patron</span>
+                </button>
+              ) : isAdmin ? (
                 <button onClick={handleAdminLogout} className="flex items-center gap-1 pl-1 pr-2 py-1 bg-[#730051] text-white rounded-full transition-all shadow-sm active:scale-95 whitespace-nowrap">
                   <LogOut size={12} strokeWidth={2.5} />
                   <span className="text-[10px] font-bold">Log Out</span>
@@ -911,9 +923,16 @@ const Header = () => {
                 </div>
               </div>
 
-              {/* Sign In / User / Admin Logout button - always right */}
+              {/* Sign In / User / Admin Logout / Patron button - always right */}
               <div className="flex-shrink-0 ml-2 xl:ml-4">
-                {isAdmin ? (
+                {isAdmin && isPatron ? (
+                  <button onClick={() => navigate('/patron')} className="flex items-center gap-2 pl-1.5 pr-4 py-1.5 bg-white hover:bg-purple-50 border-2 border-[#730051]/10 hover:border-[#730051]/30 rounded-full font-bold text-[#730051] transition-all shadow-md hover:shadow-[#730051]/5 active:scale-95 whitespace-nowrap group">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#730051] text-white transition-all group-hover:ring-2 group-hover:ring-purple-200">
+                      <Crown size={16} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[12px] xl:text-[13px] leading-none tracking-tight">Patron</span>
+                  </button>
+                ) : isAdmin ? (
                   <button onClick={handleAdminLogout} className="flex items-center gap-1.5 px-2.5 xl:px-4 py-1.5 xl:py-2 bg-[#730051] text-white font-medium text-[11px] xl:text-sm rounded-lg hover:bg-[#5a0040] transition-colors shadow-lg shadow-purple-900/10 active:scale-95 transform transition-all whitespace-nowrap">
                     <LogOut size={16} className="xl:w-[18px] xl:h-[18px]" />
                     <span className="hidden xl:inline">Log Out</span>

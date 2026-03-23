@@ -72,6 +72,7 @@ const OtherCommittees = lazy(() => import("../components/OtherCommittees"));
 const CommitteeAdmin = lazy(() => import("../components/admin"));
 const DirectSignPage = lazy(() => import("./DirectSignPage"));
 const WelcomePage = lazy(() => import("./WelcomePage"));
+const PatronDashboard = lazy(() => import("./PatronDashboard"));
 
 
 
@@ -143,6 +144,7 @@ export const router = createBrowserRouter([
             { path: "/other-committees", element: <OtherCommittees /> },
             { path: "/committee-admin", element: <CommitteeAdmin /> },
             { path: "/welcome", element: <WelcomePage /> },
+            { path: "/patron", element: <PatronDashboard /> },
 
             /* Fellowships and Classes */
             { path: "/brothersfellowship", element: <BrothersFellowship /> },

@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   LayoutDashboard,
   Users,
+  UserCog,
   Vote,
   MessageSquare,
   FileText,
   FolderOpen,
-  X,
-  Menu
+  LogOut
 } from 'lucide-react';
 import styles from '../styles/adminSidebar.module.css';
 
@@ -18,6 +18,7 @@ interface AdminSidebarProps {
   onSectionChange: (section: AdminSection) => void;
   isOpen: boolean;
   onToggle: () => void;
+  onLogout?: () => void;
 }
 
 interface MenuItem {
@@ -27,48 +28,52 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-  { id: 'students', label: 'Students', icon: <Users size={20} /> },
-  { id: 'committee', label: 'Committee', icon: <Users size={20} /> }, // Added Committee
-  { id: 'polling', label: 'Polling', icon: <Vote size={20} /> },
-  { id: 'messages', label: 'Messages', icon: <MessageSquare size={20} /> },
-  { id: 'minutes', label: 'Minutes', icon: <FileText size={20} /> },
-  { id: 'documents', label: 'Documents', icon: <FolderOpen size={20} /> },
+  { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+  { id: 'students', label: 'Students', icon: <Users size={16} /> },
+  { id: 'polling', label: 'Polling', icon: <Vote size={16} /> },
+  { id: 'messages', label: 'Messages', icon: <MessageSquare size={16} /> },
+  { id: 'minutes', label: 'Minutes', icon: <FileText size={16} /> },
+  { id: 'documents', label: 'Documents', icon: <FolderOpen size={16} /> },
+  { id: 'committee', label: 'Committee', icon: <UserCog size={16} /> },
 ];
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({
   activeSection,
   onSectionChange,
   isOpen,
-  onToggle
+  onToggle,
+  onLogout
 }) => {
+  const sidebarRef = useRef<HTMLElement>(null);
+
   const handleItemClick = (section: AdminSection) => {
     onSectionChange(section);
-    // Close sidebar on mobile after selection
     if (window.innerWidth < 768) {
       onToggle();
     }
   };
 
+  // Close sidebar when clicking anywhere outside it (mobile)
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(e.target as Node)) {
+        onToggle();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, onToggle]);
+
   return (
     <>
-      {/* Mobile Toggle Button */}
-      <button className={styles.mobileToggle} onClick={onToggle}>
-        <Menu size={24} />
-      </button>
-
       {/* Overlay for mobile */}
       {isOpen && <div className={styles.overlay} onClick={onToggle} />}
 
       {/* Sidebar */}
-      <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
-        <div className={styles.sidebarHeader}>
-          <h2 className={styles.sidebarTitle}>Admin Panel</h2>
-          <button className={styles.closeButton} onClick={onToggle}>
-            <X size={20} />
-          </button>
-        </div>
-
+      <aside ref={sidebarRef} className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
         <nav className={styles.nav}>
           <ul className={styles.menuList}>
             {menuItems.map((item) => (
@@ -76,6 +81,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 <button
                   className={`${styles.menuItem} ${activeSection === item.id ? styles.active : ''}`}
                   onClick={() => handleItemClick(item.id)}
+                  data-label={item.label}
                 >
                   <span className={styles.menuIcon}>{item.icon}</span>
                   <span className={styles.menuLabel}>{item.label}</span>
@@ -84,6 +90,15 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             ))}
           </ul>
         </nav>
+
+        {onLogout && (
+          <div className={styles.sidebarFooter}>
+            <button className={styles.logoutBtn} onClick={onLogout}>
+              <LogOut size={14} />
+              <span className={styles.menuLabel}>Log Out</span>
+            </button>
+          </div>
+        )}
       </aside>
     </>
   );

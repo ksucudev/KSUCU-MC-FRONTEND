@@ -191,6 +191,11 @@ const Media: React.FC = () => {
       });
 
       if (!response.ok) {
+        // Check if patron is logged in
+        if (localStorage.getItem('patronSession') === 'true') {
+          setIsAuthenticated(true);
+          return;
+        }
         setError('You need to login or sign up to access this page');
         return;
       }
@@ -199,6 +204,11 @@ const Media: React.FC = () => {
 
     } catch (error) {
       console.error('Error fetching user data:', error);
+      // Check if patron is logged in
+      if (localStorage.getItem('patronSession') === 'true') {
+        setIsAuthenticated(true);
+        return;
+      }
       setError('You need to login or sign up to access this page');
     } finally {    
       document.body.style.overflow = '';  

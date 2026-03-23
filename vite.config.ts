@@ -109,6 +109,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         bypass: (req) => req.headers.accept?.includes('text/html') ? '/index.html' : null
+      },
+      '/patron': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false
       }
     }
   },

@@ -53,6 +53,7 @@ export const organizationSections: NavSection[] = [
       { label: 'Creativity', href: '/ministries/creativity' },
       { label: 'Intercessory', href: '/ministries/intercessory' },
       { label: 'Ushering & Hospitality', href: '/ministries/ushering' },
+      { label: 'Compassion & Counseling', href: '/ministries/compassion' },
     ],
   },
   {
@@ -173,6 +174,7 @@ export const headerNavGroups = {
         { label: 'Creativity', href: '/ministries/creativity' },
         { label: 'Church School', href: '/ministries/churchSchool' },
         { label: 'High School', href: '/ministries/highSchool' },
+        { label: 'Compassion & Counseling', href: '/ministries/compassion' },
       ],
     },
     {

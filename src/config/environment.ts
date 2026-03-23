@@ -97,6 +97,13 @@ interface ApiConfig {
     minutesPinStatus: string;
     minutesPinSetup: string;
     minutesPinVerify: string;
+    patronLogin: string;
+    patronLogout: string;
+    patronVerify: string;
+    patronUsers: string;
+    patronMessages: string;
+    patronMedia: string;
+    patronChangePassword: string;
   };
 }
 
@@ -205,7 +212,14 @@ const developmentConfig: ApiConfig = {
     minutes: '/minutes',
     minutesPinStatus: '/minutes/pin/status',
     minutesPinSetup: '/minutes/pin/setup',
-    minutesPinVerify: '/minutes/pin/verify'
+    minutesPinVerify: '/minutes/pin/verify',
+    patronLogin: '/patron/login',
+    patronLogout: '/patron/logout',
+    patronVerify: '/patron/verify',
+    patronUsers: '/patron/users',
+    patronMessages: '/patron/messages',
+    patronMedia: '/patron/media',
+    patronChangePassword: '/patron/change-password'
   }
 };
 
@@ -307,7 +321,14 @@ const productionConfig: ApiConfig = {
     minutes: '/minutes',
     minutesPinStatus: '/minutes/pin/status',
     minutesPinSetup: '/minutes/pin/setup',
-    minutesPinVerify: '/minutes/pin/verify'
+    minutesPinVerify: '/minutes/pin/verify',
+    patronLogin: '/patron/login',
+    patronLogout: '/patron/logout',
+    patronVerify: '/patron/verify',
+    patronUsers: '/patron/users',
+    patronMessages: '/patron/messages',
+    patronMedia: '/patron/media',
+    patronChangePassword: '/patron/change-password'
   }
 };
 

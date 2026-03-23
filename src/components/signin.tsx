@@ -251,7 +251,11 @@ const SignIn: React.FC = () => {
             let endpoint: string;
             let route: string;
 
-            if (mapping) {
+            if (processedEmail === 'patron@ksucu-mc.co.ke') {
+                // Patron login
+                endpoint = getApiUrl('patronLogin');
+                route = '/patron';
+            } else if (mapping) {
                 // Admin domain found
                 endpoint = mapping.endpoint;
                 route = mapping.route;
@@ -291,11 +295,16 @@ const SignIn: React.FC = () => {
             console.log('✅ SignIn: Login successful, response:', response.data);
             console.log('🔐 SignIn: Navigating to:', route);
 
-            // Track admin session for navbar display
-            if (mapping) {
+            // Track admin/patron session for navbar display
+            if (processedEmail === 'patron@ksucu-mc.co.ke') {
                 localStorage.setItem('adminSession', 'true');
+                localStorage.setItem('patronSession', 'true');
+            } else if (mapping) {
+                localStorage.setItem('adminSession', 'true');
+                localStorage.removeItem('patronSession');
             } else {
                 localStorage.removeItem('adminSession');
+                localStorage.removeItem('patronSession');
             }
 
             // Check for profile photo if regular user login

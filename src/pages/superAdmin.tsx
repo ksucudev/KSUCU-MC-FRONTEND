@@ -53,7 +53,6 @@ const SuperAdmin: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
     const [usersByMinistry, setUsersByMinistry] = useState<{ [key: string]: number }>({});
     const [usersByEt, setUsersByEt] = useState<{ [key: string]: number }>({});
     const [users, setUsers] = useState<{ username: string; reg: string; course: string; yos: string }[]>([]);
@@ -81,6 +80,44 @@ const SuperAdmin: React.FC = () => {
 
     const backEndURL = getApiUrl('superAdmin').replace('/login', '');
 
+    // Hide main site's left sidebar and footer when admin page is active
+    useEffect(() => {
+        document.body.classList.add('super-admin-active');
+
+        // Remove left margin from parent (main site sidebar offset)
+        const parentWrapper = document.querySelector('[class*="min-h-screen"]') as HTMLElement;
+        if (parentWrapper) {
+            parentWrapper.style.marginLeft = '0';
+        }
+
+        const style = document.createElement('style');
+        style.id = 'super-admin-overrides';
+        style.textContent = `
+            /* Hide the main site left purple sidebar */
+            body.super-admin-active [style*="z-index: 99999"],
+            body.super-admin-active [style*="z-index:99999"],
+            body.super-admin-active [style*="z-index: 99997"],
+            body.super-admin-active [style*="z-index:99997"] {
+                display: none !important;
+            }
+            /* Hide footer, chat, notifications */
+            body.super-admin-active > div > div > footer,
+            body.super-admin-active [class*="CommunityChat"],
+            body.super-admin-active [class*="NotificationBubble"] {
+                display: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+
+        return () => {
+            document.body.classList.remove('super-admin-active');
+            style.remove();
+            if (parentWrapper) {
+                parentWrapper.style.marginLeft = '';
+            }
+        };
+    }, []);
+
     const handleLogout = async () => {
         try {
             const response = await fetch(`${backEndURL}/logout`, {
@@ -96,10 +133,17 @@ const SuperAdmin: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchUserData();
-        fetchMessages();
-        fetchPollingStats();
-        fetchPollingOfficers();
+        const loadAllData = async () => {
+            setLoading(true);
+            await Promise.allSettled([
+                fetchUserData(),
+                fetchMessages(),
+                fetchPollingStats(),
+                fetchPollingOfficers()
+            ]);
+            setLoading(false);
+        };
+        loadAllData();
     }, []);
 
     const fetchUserData = async () => {
@@ -125,7 +169,6 @@ const SuperAdmin: React.FC = () => {
             setUsersByEt(groupedByEt);
         } catch (err) {
             console.error('Error fetching user data:', err);
-            setError('Failed to fetch user data');
         }
     };
 
@@ -135,9 +178,6 @@ const SuperAdmin: React.FC = () => {
             setMessages(response.data);
         } catch (err) {
             console.error('Error fetching messages:', err);
-            setError('Failed to fetch messages');
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -437,21 +477,20 @@ const SuperAdmin: React.FC = () => {
 
             {/* Academic Year Advancement */}
             <div style={{
-                marginTop: '30px',
-                padding: '20px',
-                background: '#f8f4f7',
-                borderRadius: '12px',
-                border: '2px solid #730051'
+                marginTop: '20px',
+                padding: '16px',
+                background: '#faf0f6',
+                borderRadius: '8px',
+                border: '1px solid #f0e0ec'
             }}>
-                <h3 style={{ color: '#730051', marginBottom: '10px' }}>Academic Year Advancement</h3>
-                <p style={{ color: '#555', fontSize: '14px', marginBottom: '15px' }}>
+                <h3 style={{ color: '#730051', marginBottom: '6px', fontSize: '15px', fontWeight: 700 }}>Academic Year Advancement</h3>
+                <p style={{ color: '#666', fontSize: '13px', marginBottom: '12px', lineHeight: '1.5' }}>
                     Advance all students by one year. Students at year 4 (or year 6 for medical) will be
                     promoted to Associate status automatically.
                 </p>
                 <button
                     className={styles.primaryButton}
                     onClick={() => setShowAdvanceConfirm(true)}
-                    style={{ background: '#730051' }}
                 >
                     Start Year Advancement
                 </button>
@@ -666,19 +705,11 @@ const SuperAdmin: React.FC = () => {
             return <CommitteeManager />;
         }
 
-        // Other sections depend on data fetching
+        // Show loading only during initial fetch
         if (loading) {
             return (
                 <div className={styles.loadingContainer}>
                     <p>Loading...</p>
-                </div>
-            );
-        }
-
-        if (error) {
-            return (
-                <div className={styles.errorContainer}>
-                    <p>{error}</p>
                 </div>
             );
         }
@@ -704,12 +735,14 @@ const SuperAdmin: React.FC = () => {
     return (
         <div className={styles.pageWrapper}>
             <header className={styles.adminHeader}>
-                <button className={styles.menuButton} onClick={() => setSidebarOpen(!sidebarOpen)}>
-                    {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
-                </button>
-                <h1 className={styles.adminHeaderTitle}>Admin Dashboard</h1>
+                <h1 className={styles.adminHeaderTitle}>
+                    Super Admin Dashboard
+                </h1>
                 <button className={styles.logoutButton} onClick={handleLogout}>
-                    Logout
+                    Log Out
+                </button>
+                <button className={styles.menuButton} onClick={() => setSidebarOpen(!sidebarOpen)}>
+                    {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
                 </button>
             </header>
             <div className={styles.adminLayout}>
@@ -718,6 +751,7 @@ const SuperAdmin: React.FC = () => {
                     onSectionChange={setActiveSection}
                     isOpen={sidebarOpen}
                     onToggle={() => setSidebarOpen(!sidebarOpen)}
+                    onLogout={handleLogout}
                 />
                 <main className={styles.mainContent}>
                     {renderActiveSection()}
