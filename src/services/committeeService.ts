@@ -45,7 +45,7 @@ const INITIAL_MEMBERS: CommitteeMember[] = [
         bio: "Keeping records of all the committee activities and ensuring that all activities align with our core values and mission.",
         image: secretaryImg,
         yearOfStudy: "1",
-        course: "B.A. Economics"
+        course: "Bachelor of Laws (LLB)"
     },
     {
         id: 4,
