@@ -1,11 +1,14 @@
 import userImg from '../assets/userIMG.jpeg';
 import overseerImg from '../assets/overseer_christianminds.jpg';
+import mobuiImg from '../assets/newmobui.jpg';
 import secretaryImg from '../assets/secretary_christianminds.jpg';
 import peaceImg from '../assets/peace.jpg';
-import manuImg from '../assets/mannuu.jpg';
+import manuImg from '../assets/2mannuu.jpg';
 import wandiaImg from '../assets/wandia.jpg';
 import khamalahImg from '../assets/khamalaaah.jpg';
 import samImg from '../assets/sam.jpg';
+
+
 
 export interface CommitteeMember {
     id: number;
@@ -34,7 +37,7 @@ const INITIAL_MEMBERS: CommitteeMember[] = [
         name: "Jackson Mobui",
         position: "Chairperson",
         bio: "Leading the committee and ensuring that all activities align with our core values and mission.",
-        image: userImg,
+        image: mobuiImg,
         yearOfStudy: "3",
         course: "Nursing"
     },
