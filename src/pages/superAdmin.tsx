@@ -13,6 +13,7 @@ import AdminSidebar, { AdminSection } from '../components/AdminSidebar';
 import PinEntry from '../components/PinEntry';
 import CommitteeManager from '../components/CommitteeManager';
 import FinancePanel from '../components/finance/FinancePanel';
+import AdminManager from '../components/AdminManager';
 
 interface Message {
     _id: string;
@@ -715,6 +716,11 @@ const SuperAdmin: React.FC = () => {
         // Committee section is offline/local-only, so it should render regardless of backend status
         if (activeSection === 'committee') {
             return <CommitteeManager />;
+        }
+
+        // Admin Management section
+        if (activeSection === 'adminManagement') {
+            return <AdminManager />;
         }
 
         // Finance section has its own data loading

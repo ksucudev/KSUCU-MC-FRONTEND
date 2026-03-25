@@ -517,7 +517,6 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
               <option value="treasurer">Treasurer</option>
               <option value="auditor">Auditor</option>
               <option value="chair_accounts">Chair Accounts</option>
-              <option value="chairperson">Chairperson</option>
             </select>
           </label>
         </div>
