@@ -145,8 +145,7 @@ const FinancialsPage: React.FC = () => {
               >
                 <option value="offering">Offering</option>
                 <option value="tithe">Tithe</option>
-                <option value="project">Project</option>
-                <option value="other">Other</option>
+                <option value="thanksgiving">Thanksgiving</option>
               </select>
             </div>
           </div>

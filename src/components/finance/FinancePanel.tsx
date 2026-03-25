@@ -326,7 +326,7 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
       <form onSubmit={handleCreateTransaction} className={styles.form}>
         <div className={styles.formRow}>
           <label>Type<select value={txForm.type} onChange={e => setTxForm({ ...txForm, type: e.target.value })}><option value="cash_in">Cash In</option><option value="cash_out">Cash Out</option></select></label>
-          {txForm.type === 'cash_in' && <label>Category<select value={txForm.category} onChange={e => setTxForm({ ...txForm, category: e.target.value })}><option value="offering">Offering</option><option value="tithe">Tithe</option><option value="thanksgiving">Thanksgiving</option><option value="aob">AOB</option></select></label>}
+          {txForm.type === 'cash_in' && <label>Category<select value={txForm.category} onChange={e => setTxForm({ ...txForm, category: e.target.value })}><option value="offering">Offering</option><option value="tithe">Tithe</option><option value="thanksgiving">Thanksgiving</option></select></label>}
         </div>
         <div className={styles.formRow}>
           <label>Source<select value={txForm.source} onChange={e => setTxForm({ ...txForm, source: e.target.value })}><option value="cash">Cash</option><option value="mpesa">M-Pesa</option></select></label>
@@ -485,7 +485,7 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
       <form onSubmit={handleMpesa} className={styles.form}>
         <label>Phone Number<input type="text" value={mpesaForm.phone} onChange={e => setMpesaForm({ ...mpesaForm, phone: e.target.value })} placeholder="0712345678" required /></label>
         <label>Amount (KES)<input type="number" value={mpesaForm.amount} onChange={e => setMpesaForm({ ...mpesaForm, amount: e.target.value })} required min="1" /></label>
-        <label>Category<select value={mpesaForm.category} onChange={e => setMpesaForm({ ...mpesaForm, category: e.target.value })}><option value="offering">Offering</option><option value="tithe">Tithe</option><option value="thanksgiving">Thanksgiving</option><option value="aob">AOB</option></select></label>
+        <label>Category<select value={mpesaForm.category} onChange={e => setMpesaForm({ ...mpesaForm, category: e.target.value })}><option value="offering">Offering</option><option value="tithe">Tithe</option><option value="thanksgiving">Thanksgiving</option></select></label>
         <button type="submit" className={styles.actionBtn}>Send STK Push</button>
       </form>
     </div>
