@@ -101,10 +101,21 @@ const SuperAdmin: React.FC = () => {
             body.super-admin-active [style*="z-index:99997"] {
                 display: none !important;
             }
-            /* Hide footer, chat, notifications */
+            /* Hide footer, chat, notifications, support widgets */
             body.super-admin-active > div > div > footer,
             body.super-admin-active [class*="CommunityChat"],
-            body.super-admin-active [class*="NotificationBubble"] {
+            body.super-admin-active [class*="NotificationBubble"],
+            body.super-admin-active iframe[title*="chat"],
+            body.super-admin-active iframe[title*="Chat"],
+            body.super-admin-active iframe[title*="Freshdesk"],
+            body.super-admin-active iframe[title*="freshdesk"],
+            body.super-admin-active [id*="freshworks"],
+            body.super-admin-active [id*="launcher"],
+            body.super-admin-active [id*="fc_frame"],
+            body.super-admin-active [id*="fc_push"],
+            body.super-admin-active [id*="fc-widget"],
+            body.super-admin-active div[style*="z-index: 2147483647"],
+            body.super-admin-active div[style*="z-index:2147483647"] {
                 display: none !important;
             }
         `;

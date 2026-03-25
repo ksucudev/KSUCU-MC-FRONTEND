@@ -203,6 +203,23 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
     } catch (err: any) { setError(err.message); }
   };
 
+  const handleResetPassword = async (id: string, email: string) => {
+    const newPassword = prompt(`Enter new password for ${email} (min 6 chars):`);
+    if (!newPassword) return;
+    if (newPassword.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    setError(''); setSuccess('');
+    try {
+      await financeApi.put(`/users/${id}/reset-password`, { password: newPassword });
+      setSuccess(`Password reset for ${email}.`);
+    } catch (err: any) { setError(err.message); }
+  };
+
+  const handleCopyEmail = (email: string) => {
+    navigator.clipboard.writeText(email);
+    setSuccess(`Copied: ${email}`);
+    setTimeout(() => setSuccess(''), 2000);
+  };
+
   const handleDeleteUser = async (id: string, email: string) => {
     if (!confirm(`Delete finance user ${email}?`)) return;
     try {
@@ -465,18 +482,22 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
       <h4 style={{ margin: '0 0 12px', fontSize: '14px', color: '#333' }}>Existing Finance Users ({users.length})</h4>
       <div className={styles.tableWrap}>
         <table className={styles.table}>
-          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Phone</th><th>Created</th><th>Action</th></tr></thead>
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Phone</th><th>Created</th><th>Actions</th></tr></thead>
           <tbody>
             {users.length === 0 ? (
               <tr><td colSpan={6} style={{ textAlign: 'center', color: '#999', padding: '20px' }}>No finance users yet. Create one above.</td></tr>
             ) : users.map(u => (
               <tr key={u._id}>
                 <td>{u.name || '-'}</td>
-                <td>{u.email}</td>
+                <td style={{ cursor: 'pointer' }} onClick={() => handleCopyEmail(u.email)} title="Click to copy">{u.email}</td>
                 <td><span className={`${styles.badge} ${styles.approved}`}>{u.role.replace('_', ' ')}</span></td>
                 <td>{u.phone || '-'}</td>
                 <td>{formatDate(u.createdAt)}</td>
-                <td><button className={styles.rejectBtn} onClick={() => handleDeleteUser(u._id, u.email)}>Delete</button></td>
+                <td style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <button className={styles.approveBtn} onClick={() => handleCopyEmail(u.email)}>Copy Email</button>
+                  <button className={styles.actionBtn} style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => handleResetPassword(u._id, u.email)}>Reset Password</button>
+                  <button className={styles.rejectBtn} onClick={() => handleDeleteUser(u._id, u.email)}>Delete</button>
+                </td>
               </tr>
             ))}
           </tbody>
