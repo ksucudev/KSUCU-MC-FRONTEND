@@ -7,11 +7,12 @@ import {
   MessageSquare,
   FileText,
   FolderOpen,
+  DollarSign,
   LogOut
 } from 'lucide-react';
 import styles from '../styles/adminSidebar.module.css';
 
-export type AdminSection = 'dashboard' | 'students' | 'polling' | 'messages' | 'minutes' | 'documents' | 'committee';
+export type AdminSection = 'dashboard' | 'students' | 'polling' | 'messages' | 'minutes' | 'documents' | 'committee' | 'finance';
 
 interface AdminSidebarProps {
   activeSection: AdminSection;
@@ -35,6 +36,7 @@ const menuItems: MenuItem[] = [
   { id: 'minutes', label: 'Minutes', icon: <FileText size={16} /> },
   { id: 'documents', label: 'Documents', icon: <FolderOpen size={16} /> },
   { id: 'committee', label: 'Committee', icon: <UserCog size={16} /> },
+  { id: 'finance', label: 'Finance', icon: <DollarSign size={16} /> },
 ];
 
 const AdminSidebar: React.FC<AdminSidebarProps> = ({

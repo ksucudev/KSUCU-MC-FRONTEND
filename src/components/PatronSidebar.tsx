@@ -5,11 +5,12 @@ import {
   MessageSquare,
   Image,
   Settings,
+  DollarSign,
   X
 } from 'lucide-react';
 import styles from '../styles/patronSidebar.module.css';
 
-export type PatronSection = 'dashboard' | 'members' | 'feedback' | 'gallery' | 'settings';
+export type PatronSection = 'dashboard' | 'members' | 'feedback' | 'gallery' | 'settings' | 'finance';
 
 interface PatronSidebarProps {
   activeSection: PatronSection;
@@ -30,6 +31,7 @@ const menuItems: MenuItem[] = [
   { id: 'feedback', label: 'Feedback', icon: <MessageSquare size={20} /> },
   { id: 'gallery', label: 'Gallery', icon: <Image size={20} /> },
   { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
+  { id: 'finance', label: 'Finance', icon: <DollarSign size={20} /> },
 ];
 
 const PatronSidebar: React.FC<PatronSidebarProps> = ({

@@ -12,6 +12,7 @@ import MinutesManager from '../components/MinutesManager';
 import AdminSidebar, { AdminSection } from '../components/AdminSidebar';
 import PinEntry from '../components/PinEntry';
 import CommitteeManager from '../components/CommitteeManager';
+import FinancePanel from '../components/finance/FinancePanel';
 
 interface Message {
     _id: string;
@@ -705,6 +706,11 @@ const SuperAdmin: React.FC = () => {
             return <CommitteeManager />;
         }
 
+        // Finance section has its own data loading
+        if (activeSection === 'finance') {
+            return <FinancePanel />;
+        }
+
         // Show loading only during initial fetch
         if (loading) {
             return (
@@ -736,7 +742,7 @@ const SuperAdmin: React.FC = () => {
         <div className={styles.pageWrapper}>
             <header className={styles.adminHeader}>
                 <h1 className={styles.adminHeaderTitle}>
-                    Super Admin Dashboard
+                    System Admin Dashboard
                 </h1>
                 <button className={styles.logoutButton} onClick={handleLogout}>
                     Log Out

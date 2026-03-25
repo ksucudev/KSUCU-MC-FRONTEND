@@ -8,6 +8,7 @@ import { Menu, X, Search } from 'lucide-react';
 import { getApiUrl, getImageUrl } from '../config/environment';
 import letterhead from '../assets/letterhead.png';
 import PatronSidebar, { PatronSection } from '../components/PatronSidebar';
+import FinancePanel from '../components/finance/FinancePanel';
 
 interface User {
     username: string;
@@ -660,6 +661,7 @@ const PatronDashboard: React.FC = () => {
             case 'feedback': return renderFeedback();
             case 'gallery': return renderGallery();
             case 'settings': return renderSettings();
+            case 'finance': return <FinancePanel isPatron />;
             default: return renderDashboard();
         }
     };
