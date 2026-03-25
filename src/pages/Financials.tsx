@@ -200,6 +200,9 @@ const FinancialsPage: React.FC = () => {
         background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px',
         padding: '28px', marginBottom: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
       }}>
+        <div style={{ padding: '10px 14px', background: '#fef3c7', color: '#92400e', borderRadius: '8px', marginBottom: '16px', fontSize: '12px', textAlign: 'center', fontWeight: 600, border: '1px solid #fde68a' }}>
+          EBENEZER SOFTWARES — FOR TESTING ONLY
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
           <div style={{
             width: '44px', height: '44px', borderRadius: '12px',
