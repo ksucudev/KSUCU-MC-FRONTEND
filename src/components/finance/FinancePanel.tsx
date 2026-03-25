@@ -76,6 +76,10 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
   const [assetForm, setAssetForm] = useState({ name: '', description: '', valuation: '', condition: 'good' });
   const [mpesaForm, setMpesaForm] = useState({ phone: '', amount: '', category: 'offering' });
   const [userForm, setUserForm] = useState({ name: '', email: '', password: '', role: 'treasurer', phone: '' });
+  const [resetModal, setResetModal] = useState<{ id: string; email: string } | null>(null);
+  const [resetPassword, setResetPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
 
   const tabs: { id: FinanceTab; label: string; hidden?: boolean }[] = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -194,6 +198,7 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
 
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isPasswordValid(userForm.password)) { setError('Password does not meet all requirements.'); return; }
     setError(''); setSuccess('');
     try {
       await financeApi.post('/users', userForm);
@@ -203,14 +208,49 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
     } catch (err: any) { setError(err.message); }
   };
 
-  const handleResetPassword = async (id: string, email: string) => {
-    const newPassword = prompt(`Enter new password for ${email} (min 6 chars):`);
-    if (!newPassword) return;
-    if (newPassword.length < 6) { setError('Password must be at least 6 characters.'); return; }
+  const passwordChecks = (pw: string) => ({
+    length: pw.length >= 8,
+    upper: /[A-Z]/.test(pw),
+    lower: /[a-z]/.test(pw),
+    number: /[0-9]/.test(pw),
+    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw),
+  });
+
+  const isPasswordValid = (pw: string) => {
+    const c = passwordChecks(pw);
+    return c.length && c.upper && c.lower && c.number && c.special;
+  };
+
+  const PasswordStrength: React.FC<{ password: string }> = ({ password }) => {
+    const c = passwordChecks(password);
+    if (!password) return null;
+    const items = [
+      { ok: c.length, label: '8+ characters' },
+      { ok: c.upper, label: 'Uppercase letter' },
+      { ok: c.lower, label: 'Lowercase letter' },
+      { ok: c.number, label: 'Number' },
+      { ok: c.special, label: 'Special character (!@#$...)' },
+    ];
+    return (
+      <div style={{ fontSize: '12px', marginTop: '6px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px 12px' }}>
+        {items.map(i => (
+          <span key={i.label} style={{ color: i.ok ? '#16a34a' : '#999' }}>
+            {i.ok ? '\u2713' : '\u2022'} {i.label}
+          </span>
+        ))}
+      </div>
+    );
+  };
+
+  const handleResetPassword = async () => {
+    if (!resetModal) return;
+    if (!isPasswordValid(resetPassword)) { setError('Password does not meet requirements.'); return; }
     setError(''); setSuccess('');
     try {
-      await financeApi.put(`/users/${id}/reset-password`, { password: newPassword });
-      setSuccess(`Password reset for ${email}.`);
+      await financeApi.put(`/users/${resetModal.id}/reset-password`, { password: resetPassword });
+      setSuccess(`Password reset for ${resetModal.email}.`);
+      setResetModal(null);
+      setResetPassword('');
     } catch (err: any) { setError(err.message); }
   };
 
@@ -465,7 +505,13 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
           <label>Email<input type="email" value={userForm.email} onChange={e => setUserForm({ ...userForm, email: e.target.value })} required placeholder="user@example.com" /></label>
         </div>
         <div className={styles.formRow}>
-          <label>Password<input type="password" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} required minLength={6} placeholder="Min 6 characters" /></label>
+          <label>Password
+            <div style={{ position: 'relative' }}>
+              <input type={showCreatePassword ? 'text' : 'password'} value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} required placeholder="Strong password" style={{ paddingRight: '50px' }} />
+              <button type="button" onClick={() => setShowCreatePassword(!showCreatePassword)} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: '#730051' }}>{showCreatePassword ? 'Hide' : 'Show'}</button>
+            </div>
+            <PasswordStrength password={userForm.password} />
+          </label>
           <label>Role
             <select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })}>
               <option value="treasurer">Treasurer</option>
@@ -495,7 +541,7 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
                 <td>{formatDate(u.createdAt)}</td>
                 <td style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   <button className={styles.approveBtn} onClick={() => handleCopyEmail(u.email)}>Copy Email</button>
-                  <button className={styles.actionBtn} style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => handleResetPassword(u._id, u.email)}>Reset Password</button>
+                  <button className={styles.actionBtn} style={{ fontSize: '12px', padding: '4px 10px' }} onClick={() => { setResetModal({ id: u._id, email: u.email }); setResetPassword(''); setShowPassword(false); }}>Reset Password</button>
                   <button className={styles.rejectBtn} onClick={() => handleDeleteUser(u._id, u.email)}>Delete</button>
                 </td>
               </tr>
@@ -542,6 +588,67 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
       <div className={styles.tabContent}>
         {renderContent()}
       </div>
+
+      {/* Reset Password Modal */}
+      {resetModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }}>
+          <div style={{
+            background: '#fff', borderRadius: '12px', padding: '28px', width: '420px', maxWidth: '90vw',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+          }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: '16px', color: '#1a1a1a' }}>Reset Password</h3>
+            <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#666' }}>
+              Set a new password for <strong>{resetModal.email}</strong>
+            </p>
+            <div style={{ position: 'relative', marginBottom: '4px' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={resetPassword}
+                onChange={e => setResetPassword(e.target.value)}
+                placeholder="Enter new password"
+                autoFocus
+                style={{
+                  width: '100%', padding: '10px 40px 10px 12px', fontSize: '14px',
+                  border: '1px solid #ddd', borderRadius: '8px', boxSizing: 'border-box',
+                  outline: 'none'
+                }}
+                onKeyDown={e => { if (e.key === 'Enter' && isPasswordValid(resetPassword)) handleResetPassword(); }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#730051'
+                }}
+              >{showPassword ? 'Hide' : 'Show'}</button>
+            </div>
+            <PasswordStrength password={resetPassword} />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <button
+                onClick={() => { setResetModal(null); setResetPassword(''); }}
+                style={{
+                  padding: '8px 20px', borderRadius: '8px', border: '1px solid #ddd',
+                  background: '#fff', cursor: 'pointer', fontSize: '13px', color: '#333'
+                }}
+              >Cancel</button>
+              <button
+                onClick={handleResetPassword}
+                disabled={!isPasswordValid(resetPassword)}
+                style={{
+                  padding: '8px 20px', borderRadius: '8px', border: 'none',
+                  background: isPasswordValid(resetPassword) ? '#730051' : '#ccc',
+                  color: '#fff', cursor: isPasswordValid(resetPassword) ? 'pointer' : 'not-allowed',
+                  fontSize: '13px', fontWeight: 600
+                }}
+              >Reset Password</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
