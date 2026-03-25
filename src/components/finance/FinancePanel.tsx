@@ -50,11 +50,11 @@ interface AuditLog {
 
 interface FinanceUser {
   _id: string;
-  username: string;
+  name?: string;
   email: string;
   phone?: string;
   role: string;
-  financeRole?: string | null;
+  createdAt: string;
 }
 
 const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
@@ -75,6 +75,7 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
   const [reqForm, setReqForm] = useState({ reason: '', amount_requested: '' });
   const [assetForm, setAssetForm] = useState({ name: '', description: '', valuation: '', condition: 'good' });
   const [mpesaForm, setMpesaForm] = useState({ phone: '', amount: '', category: 'offering' });
+  const [userForm, setUserForm] = useState({ name: '', email: '', password: '', role: 'treasurer', phone: '' });
 
   const tabs: { id: FinanceTab; label: string; hidden?: boolean }[] = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -191,9 +192,22 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
     } catch (err: any) { setError(err.message); }
   };
 
-  const handleAssignRole = async (userId: string, financeRole: string | null) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(''); setSuccess('');
     try {
-      await financeApi.put(`/users/${userId}/role`, { financeRole });
+      await financeApi.post('/users', userForm);
+      setSuccess('Finance user created.');
+      setUserForm({ name: '', email: '', password: '', role: 'treasurer', phone: '' });
+      loadTabData();
+    } catch (err: any) { setError(err.message); }
+  };
+
+  const handleDeleteUser = async (id: string, email: string) => {
+    if (!confirm(`Delete finance user ${email}?`)) return;
+    try {
+      await financeApi.delete(`/users/${id}`);
+      setSuccess('Finance user deleted.');
       loadTabData();
     } catch (err: any) { setError(err.message); }
   };
@@ -422,31 +436,47 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
 
   const renderUsers = () => (
     <div>
-      <h3 className={styles.tabTitle}>Finance Role Management</h3>
-      <p style={{ color: '#666', fontSize: '13px', marginBottom: '16px' }}>Assign finance roles to existing members. Only users with a finance role can access the finance subdomain.</p>
+      <h3 className={styles.tabTitle}>Finance Users</h3>
+      <p style={{ color: '#666', fontSize: '13px', marginBottom: '16px' }}>
+        Manage accounts for the finance subdomain. These users can log in to finance.ksucu-mc.co.ke with their assigned role.
+      </p>
+
+      <form onSubmit={handleCreateUser} className={styles.form} style={{ marginBottom: '24px' }}>
+        <h4 style={{ margin: '0 0 12px', fontSize: '14px', color: '#333' }}>Create Finance User</h4>
+        <div className={styles.formRow}>
+          <label>Name<input type="text" value={userForm.name} onChange={e => setUserForm({ ...userForm, name: e.target.value })} placeholder="Full name" /></label>
+          <label>Email<input type="email" value={userForm.email} onChange={e => setUserForm({ ...userForm, email: e.target.value })} required placeholder="user@example.com" /></label>
+        </div>
+        <div className={styles.formRow}>
+          <label>Password<input type="password" value={userForm.password} onChange={e => setUserForm({ ...userForm, password: e.target.value })} required minLength={6} placeholder="Min 6 characters" /></label>
+          <label>Role
+            <select value={userForm.role} onChange={e => setUserForm({ ...userForm, role: e.target.value })}>
+              <option value="treasurer">Treasurer</option>
+              <option value="auditor">Auditor</option>
+              <option value="chair_accounts">Chair Accounts</option>
+              <option value="chairperson">Chairperson</option>
+            </select>
+          </label>
+        </div>
+        <label>Phone (optional)<input type="text" value={userForm.phone} onChange={e => setUserForm({ ...userForm, phone: e.target.value })} placeholder="0712345678" /></label>
+        <button type="submit" className={styles.actionBtn}>Create User</button>
+      </form>
+
+      <h4 style={{ margin: '0 0 12px', fontSize: '14px', color: '#333' }}>Existing Finance Users ({users.length})</h4>
       <div className={styles.tableWrap}>
         <table className={styles.table}>
-          <thead><tr><th>Name</th><th>Email</th><th>Site Role</th><th>Finance Role</th><th>Action</th></tr></thead>
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Phone</th><th>Created</th><th>Action</th></tr></thead>
           <tbody>
-            {users.map(u => (
+            {users.length === 0 ? (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: '#999', padding: '20px' }}>No finance users yet. Create one above.</td></tr>
+            ) : users.map(u => (
               <tr key={u._id}>
-                <td>{u.username || '-'}</td>
+                <td>{u.name || '-'}</td>
                 <td>{u.email}</td>
-                <td>{u.role}</td>
-                <td>{u.financeRole ? <span className={`${styles.badge} ${styles.approved}`}>{u.financeRole.replace('_', ' ')}</span> : <span style={{ color: '#999' }}>None</span>}</td>
-                <td>
-                  <select
-                    value={u.financeRole || ''}
-                    onChange={e => handleAssignRole(u._id, e.target.value || null)}
-                    className={styles.roleSelect}
-                  >
-                    <option value="">None</option>
-                    <option value="treasurer">Treasurer</option>
-                    <option value="auditor">Auditor</option>
-                    <option value="chair_accounts">Chair Accounts</option>
-                    <option value="chairperson">Chairperson</option>
-                  </select>
-                </td>
+                <td><span className={`${styles.badge} ${styles.approved}`}>{u.role.replace('_', ' ')}</span></td>
+                <td>{u.phone || '-'}</td>
+                <td>{formatDate(u.createdAt)}</td>
+                <td><button className={styles.rejectBtn} onClick={() => handleDeleteUser(u._id, u.email)}>Delete</button></td>
               </tr>
             ))}
           </tbody>
