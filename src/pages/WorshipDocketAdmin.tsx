@@ -19,7 +19,7 @@ import { useOverseerAuth } from '../hooks/useOverseerAuth';
 
 const WorshipDocketAdmin: React.FC = () => {
     const navigate = useNavigate();
-    const { authenticated, loading: authLoading, login, logout } = useOverseerAuth();
+    const { authenticated, loading: authLoading, logout } = useOverseerAuth();
     const [message, setMessage] = useState('');
     const [selectedRole, setSelectedRole] = useState<string>('');
     const [search, setSearch] = useState('');
