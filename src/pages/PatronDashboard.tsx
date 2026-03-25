@@ -714,15 +714,15 @@ const PatronDashboard: React.FC = () => {
             </header>
 
             <div className={styles.adminLayout} style={{ background: '#f5f5f5' }}>
-                <main className={styles.mainContent} style={{ padding: '16px' }}>
-                    {renderActiveSection()}
-                </main>
                 <PatronSidebar
                     activeSection={activeSection}
                     onSectionChange={setActiveSection}
                     isOpen={sidebarOpen}
                     onToggle={() => setSidebarOpen(!sidebarOpen)}
                 />
+                <main className={styles.mainContent} style={{ padding: '16px' }}>
+                    {renderActiveSection()}
+                </main>
             </div>
 
             <footer className={styles.footerWrapper}></footer>
