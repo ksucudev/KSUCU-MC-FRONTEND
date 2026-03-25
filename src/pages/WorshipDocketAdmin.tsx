@@ -20,6 +20,7 @@ import { useOverseerAuth } from '../hooks/useOverseerAuth';
 const WorshipDocketAdmin: React.FC = () => {
     const navigate = useNavigate();
     const { authenticated, loading: authLoading, login, logout } = useOverseerAuth();
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [authError, setAuthError] = useState('');
     const [message, setMessage] = useState('');
@@ -29,7 +30,7 @@ const WorshipDocketAdmin: React.FC = () => {
 
     const handleLogin = async () => {
         setLoginLoading(true);
-        const result = await login(password);
+        const result = await login(email, password);
         if (result.success) {
             setAuthError('');
             setMessage('Successfully logged in to Leadership Admin');
@@ -39,6 +40,7 @@ const WorshipDocketAdmin: React.FC = () => {
             setTimeout(() => setAuthError(''), 3000);
         }
         setPassword('');
+        setEmail('');
         setLoginLoading(false);
     };
 
@@ -81,8 +83,8 @@ const WorshipDocketAdmin: React.FC = () => {
             <>
                 <div className={styles.container}>
                     <div className={styles.loginCard}>
-                        <h2>Leadership Admin</h2>
-                        <p>Enter admin password to access leadership attendance management</p>
+                        <h2>Overseer Login</h2>
+                        <p>Sign in with your overseer credentials</p>
 
                         {authError && (
                             <div className={styles.error}>
@@ -92,9 +94,20 @@ const WorshipDocketAdmin: React.FC = () => {
 
                         <div className={styles.inputGroup}>
                             <input
+                                type="email"
+                                className={styles.passwordInput}
+                                placeholder="Email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={loginLoading}
+                            />
+                        </div>
+
+                        <div className={styles.inputGroup}>
+                            <input
                                 type="password"
                                 className={styles.passwordInput}
-                                placeholder="Enter password"
+                                placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
@@ -105,9 +118,9 @@ const WorshipDocketAdmin: React.FC = () => {
                         <button
                             className={styles.loginButton}
                             onClick={handleLogin}
-                            disabled={loginLoading}
+                            disabled={loginLoading || !email || !password}
                         >
-                            {loginLoading ? 'Logging in...' : 'Access Admin Panel'}
+                            {loginLoading ? 'Logging in...' : 'Log In'}
                         </button>
                     </div>
                 </div>

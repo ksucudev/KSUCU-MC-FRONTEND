@@ -25,13 +25,13 @@ export const useOverseerAuth = () => {
     }
   };
 
-  const login = async (password: string): Promise<{ success: boolean; message?: string }> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     try {
       const response = await fetch(getApiUrl('overseer/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
       if (response.ok) {
