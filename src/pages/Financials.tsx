@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { getBaseUrl } from '../config/environment';
+import Cookies from 'js-cookie';
 
 interface Contribution {
   _id: string;
@@ -27,6 +30,9 @@ const FinancialsPage: React.FC = () => {
   const [payError, setPayError] = useState('');
   const [payStatus, setPayStatus] = useState<'idle' | 'waiting' | 'success' | 'cancelled' | 'timeout' | 'failed'>('idle');
   const [verseIndex] = useState(() => Math.floor(Math.random() * verses.length));
+  const socketRef = useRef<Socket | null>(null);
+  const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resolvedRef = useRef(false);
 
   useEffect(() => { fetchContributions(); }, []);
 
@@ -43,53 +49,68 @@ const FinancialsPage: React.FC = () => {
   const formatAmount = (amount: number) => `KES ${amount.toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
   const formatDate = (d: string) => new Date(d).toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric' });
 
+  const handlePaymentResult = (status: string, message: string) => {
+    if (resolvedRef.current) return;
+    resolvedRef.current = true;
+    // Clean up socket listener
+    if (socketRef.current) {
+      socketRef.current.off('mpesa-payment-result');
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+
+    if (status === 'success') {
+      setPayStatus('success');
+      setPayMsg('Payment completed successfully! Thank you for your generous giving.');
+      setPayError('');
+      fetchContributions();
+    } else {
+      setPayStatus(status as any);
+      setPayMsg('');
+      setPayError(message);
+    }
+    setPayLoading(false);
+  };
+
   const pollStatus = async (checkoutRequestID: string) => {
     setPayStatus('waiting');
-    setPayMsg('Check your phone and enter your M-Pesa PIN to complete payment...');
+    setPayMsg('');
+    resolvedRef.current = false;
+
+    // 1. Connect WebSocket for instant callback notification
+    try {
+      const token = Cookies.get('user_s') || '';
+      const socket = io(getBaseUrl(), { auth: { token }, transports: ['websocket', 'polling'] });
+      socketRef.current = socket;
+      socket.on('mpesa-payment-result', (data: { checkoutRequestID: string; status: string; message: string }) => {
+        if (data.checkoutRequestID === checkoutRequestID) {
+          handlePaymentResult(data.status, data.message);
+        }
+      });
+    } catch { /* WebSocket optional — polling is the fallback */ }
+
+    // 2. Poll as fallback (in case WebSocket misses it)
     let attempts = 0;
-    const maxAttempts = 12; // 60 seconds total (5s intervals)
+    const maxAttempts = 15;
     const poll = async () => {
+      if (resolvedRef.current) return;
       attempts++;
       try {
         const res = await fetch(`/api/finance/mpesa/status/${checkoutRequestID}`, { credentials: 'include' });
         const data = await res.json();
-        if (data.status === 'success') {
-          setPayStatus('success');
-          setPayMsg('Payment completed successfully! Thank you for your generous giving.');
-          setPayError('');
-          setPayLoading(false);
-          fetchContributions();
-          return;
-        } else if (data.status === 'cancelled') {
-          setPayStatus('cancelled');
-          setPayMsg('');
-          setPayError('You cancelled the payment. You can try again when ready.');
-          setPayLoading(false);
-          return;
-        } else if (data.status === 'timeout') {
-          setPayStatus('timeout');
-          setPayMsg('');
-          setPayError('The payment request timed out. Please try again.');
-          setPayLoading(false);
-          return;
-        } else if (data.status === 'failed') {
-          setPayStatus('failed');
-          setPayMsg('');
-          setPayError(data.message || 'Payment failed. Please try again.');
-          setPayLoading(false);
+        if (data.status !== 'pending') {
+          handlePaymentResult(data.status, data.message);
           return;
         }
       } catch { /* continue polling */ }
-      if (attempts < maxAttempts) {
-        setTimeout(poll, 5000);
-      } else {
-        setPayStatus('timeout');
-        setPayMsg('');
-        setPayError('Could not confirm payment status. If you completed the payment, it will reflect shortly.');
-        setPayLoading(false);
+      if (!resolvedRef.current && attempts < maxAttempts) {
+        pollTimerRef.current = setTimeout(poll, 5000);
+      } else if (!resolvedRef.current) {
+        handlePaymentResult('idle', 'Could not confirm payment status. If you completed the payment, it will reflect shortly in your contributions.');
       }
     };
-    setTimeout(poll, 5000);
+    pollTimerRef.current = setTimeout(poll, 7000);
   };
 
   const handlePay = async (e: React.FormEvent) => {
@@ -133,29 +154,22 @@ const FinancialsPage: React.FC = () => {
 
       {/* Hero Section */}
       <div style={{
-        background: 'linear-gradient(135deg, #730051 0%, #4a0033 50%, #2d001f 100%)',
-        borderRadius: '16px', padding: '40px 32px', textAlign: 'center', color: '#fff',
-        marginBottom: '32px', position: 'relative', overflow: 'hidden'
+        textAlign: 'center', padding: '32px 24px', marginBottom: '28px'
       }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.06,
-          backgroundImage: 'radial-gradient(circle at 20% 50%, #fff 1px, transparent 1px), radial-gradient(circle at 80% 20%, #fff 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
-        }} />
-        <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', opacity: 0.7, marginBottom: '12px' }}>
+        <p style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase', color: '#999', marginBottom: '8px' }}>
           Kisii University Christian Union
         </p>
-        <h1 style={{ fontSize: '28px', fontWeight: 700, margin: '0 0 16px', lineHeight: 1.3 }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 700, margin: '0 0 20px', color: '#1a1a1a', lineHeight: 1.3 }}>
           Give Generously, Live Abundantly
         </h1>
         <div style={{
-          maxWidth: '520px', margin: '0 auto', padding: '16px 20px',
-          background: 'rgba(255,255,255,0.1)', borderRadius: '10px', borderLeft: '3px solid rgba(255,255,255,0.4)'
+          maxWidth: '500px', margin: '0 auto', padding: '16px 20px',
+          background: '#faf8f5', borderRadius: '10px', borderLeft: '3px solid #730051'
         }}>
-          <p style={{ fontSize: '14px', lineHeight: 1.6, margin: '0 0 6px', fontStyle: 'italic', opacity: 0.95 }}>
+          <p style={{ fontSize: '14px', lineHeight: 1.6, margin: '0 0 6px', fontStyle: 'italic', color: '#555' }}>
             "{verse.text}"
           </p>
-          <p style={{ fontSize: '12px', margin: 0, opacity: 0.7, fontWeight: 600 }}>
+          <p style={{ fontSize: '12px', margin: 0, color: '#999', fontWeight: 600 }}>
             - {verse.ref}
           </p>
         </div>
@@ -201,25 +215,24 @@ const FinancialsPage: React.FC = () => {
         </div>
 
         {payStatus === 'waiting' && (
-          <div style={{ padding: '14px 16px', background: '#fffbeb', color: '#92400e', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid #fde68a' }}>
-            <div style={{ width: '20px', height: '20px', border: '3px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-            <div>
-              <p style={{ margin: 0, fontWeight: 600 }}>Waiting for payment...</p>
-              <p style={{ margin: '2px 0 0', fontSize: '12px', opacity: 0.8 }}>{payMsg}</p>
-            </div>
+          <div style={{ padding: '16px', background: '#fffbeb', borderRadius: '10px', marginBottom: '16px', border: '1px solid #fde68a', textAlign: 'center' }}>
+            <div style={{ width: '28px', height: '28px', border: '3px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 10px' }} />
+            <p style={{ margin: 0, fontWeight: 600, color: '#92400e', fontSize: '14px' }}>Waiting for payment...</p>
+            <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#b45309' }}>Check your phone and enter your M-Pesa PIN</p>
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
           </div>
         )}
         {payStatus === 'success' && payMsg && (
-          <div style={{ padding: '14px 16px', background: '#dcfce7', color: '#166534', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', fontWeight: 500, border: '1px solid #bbf7d0' }}>
-            {payMsg}
+          <div style={{ padding: '16px', background: '#dcfce7', borderRadius: '10px', marginBottom: '16px', border: '1px solid #bbf7d0', textAlign: 'center' }}>
+            <div style={{ fontSize: '24px', marginBottom: '6px' }}>{'\u2714'}</div>
+            <p style={{ margin: 0, fontWeight: 600, color: '#166534', fontSize: '14px' }}>{payMsg}</p>
           </div>
         )}
-        {payStatus === 'idle' && payMsg && (
-          <div style={{ padding: '14px 16px', background: '#dcfce7', color: '#166534', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', fontWeight: 500 }}>{payMsg}</div>
-        )}
         {payError && (
-          <div style={{ padding: '14px 16px', background: '#fef2f2', color: '#991b1b', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', border: '1px solid #fecaca' }}>{payError}</div>
+          <div style={{ padding: '16px', background: '#fef2f2', borderRadius: '10px', marginBottom: '16px', border: '1px solid #fecaca', textAlign: 'center' }}>
+            <div style={{ fontSize: '20px', marginBottom: '6px' }}>{'\u2716'}</div>
+            <p style={{ margin: 0, color: '#991b1b', fontSize: '13px' }}>{payError}</p>
+          </div>
         )}
 
         <form onSubmit={handlePay}>
