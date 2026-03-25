@@ -99,10 +99,11 @@ const FinancialsPage: React.FC = () => {
       try {
         const res = await fetch(`/api/finance/mpesa/status/${checkoutRequestID}`, { credentials: 'include' });
         const data = await res.json();
-        if (data.status !== 'pending') {
+        if (data.status === 'success' || data.status === 'cancelled' || data.status === 'timeout' || data.status === 'failed') {
           handlePaymentResult(data.status, data.message);
           return;
         }
+        // Any other status (pending, unknown) — keep polling
       } catch { /* continue polling */ }
       if (!resolvedRef.current && attempts < maxAttempts) {
         pollTimerRef.current = setTimeout(poll, 5000);
