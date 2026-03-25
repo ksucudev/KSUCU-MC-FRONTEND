@@ -482,6 +482,7 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
   const renderMpesa = () => (
     <div>
       <h3 className={styles.tabTitle}>M-Pesa STK Push</h3>
+      <div style={{ padding: '10px 14px', background: '#fef3c7', color: '#92400e', borderRadius: '8px', marginBottom: '16px', fontSize: '12px', textAlign: 'center', fontWeight: 600, border: '1px solid #fde68a' }}>EBENEZER SOFTWARES — FOR TESTING ONLY</div>
       <form onSubmit={handleMpesa} className={styles.form}>
         <label>Phone Number<input type="text" value={mpesaForm.phone} onChange={e => setMpesaForm({ ...mpesaForm, phone: e.target.value })} placeholder="0712345678" required /></label>
         <label>Amount (KES)<input type="number" value={mpesaForm.amount} onChange={e => setMpesaForm({ ...mpesaForm, amount: e.target.value })} required min="1" /></label>
