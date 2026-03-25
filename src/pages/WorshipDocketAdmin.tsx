@@ -20,29 +20,9 @@ import { useOverseerAuth } from '../hooks/useOverseerAuth';
 const WorshipDocketAdmin: React.FC = () => {
     const navigate = useNavigate();
     const { authenticated, loading: authLoading, login, logout } = useOverseerAuth();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [authError, setAuthError] = useState('');
     const [message, setMessage] = useState('');
     const [selectedRole, setSelectedRole] = useState<string>('');
-    const [loginLoading, setLoginLoading] = useState(false);
     const [search, setSearch] = useState('');
-
-    const handleLogin = async () => {
-        setLoginLoading(true);
-        const result = await login(email, password);
-        if (result.success) {
-            setAuthError('');
-            setMessage('Successfully logged in to Leadership Admin');
-            setTimeout(() => setMessage(''), 3000);
-        } else {
-            setAuthError(result.message || 'Invalid password');
-            setTimeout(() => setAuthError(''), 3000);
-        }
-        setPassword('');
-        setEmail('');
-        setLoginLoading(false);
-    };
 
     const handleLogout = async () => {
         await logout();
@@ -79,53 +59,8 @@ const WorshipDocketAdmin: React.FC = () => {
     }
 
     if (!authenticated) {
-        return (
-            <>
-                <div className={styles.container}>
-                    <div className={styles.loginCard}>
-                        <h2>Overseer Login</h2>
-                        <p>Sign in with your overseer credentials</p>
-
-                        {authError && (
-                            <div className={styles.error}>
-                                {authError}
-                            </div>
-                        )}
-
-                        <div className={styles.inputGroup}>
-                            <input
-                                type="email"
-                                className={styles.passwordInput}
-                                placeholder="Email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                disabled={loginLoading}
-                            />
-                        </div>
-
-                        <div className={styles.inputGroup}>
-                            <input
-                                type="password"
-                                className={styles.passwordInput}
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                                disabled={loginLoading}
-                            />
-                        </div>
-
-                        <button
-                            className={styles.loginButton}
-                            onClick={handleLogin}
-                            disabled={loginLoading || !email || !password}
-                        >
-                            {loginLoading ? 'Logging in...' : 'Log In'}
-                        </button>
-                    </div>
-                </div>
-            </>
-        );
+        navigate('/signIn');
+        return null;
     }
 
     return (

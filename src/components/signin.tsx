@@ -228,6 +228,22 @@ const SignIn: React.FC = () => {
             { domain: '@ksucumcadmissionadmin.co.ke', endpoint: getApiUrl('admissionAdmin'), route: '/admission' },
         ];
 
+        // Overseer login — check by exact email match
+        if (processedEmail === 'overseer@ksucu-mc.co.ke') {
+            try {
+                const overseerResponse = await axios.post(getApiUrl('overseerLogin'), { email: processedEmail, password: formData.password }, { withCredentials: true, timeout: 30000 });
+                if (overseerResponse.data) {
+                    sessionStorage.setItem('adminAuth', 'authenticated');
+                    navigate('/worship-docket-admin');
+                    return;
+                }
+            } catch (err: any) {
+                setError(err.response?.data?.message || 'Invalid email or password');
+                setgeneralLoading(false);
+                return;
+            }
+        }
+
         // Offline check disabled - always try to login
         // if (!navigator.onLine) {
         //     setError('Check your internet and try again...');

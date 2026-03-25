@@ -97,6 +97,7 @@ interface ApiConfig {
     minutesPinStatus: string;
     minutesPinSetup: string;
     minutesPinVerify: string;
+    overseerLogin: string;
     patronLogin: string;
     patronLogout: string;
     patronVerify: string;
@@ -213,6 +214,7 @@ const developmentConfig: ApiConfig = {
     minutesPinStatus: '/minutes/pin/status',
     minutesPinSetup: '/minutes/pin/setup',
     minutesPinVerify: '/minutes/pin/verify',
+    overseerLogin: '/overseer/login',
     patronLogin: '/patron/login',
     patronLogout: '/patron/logout',
     patronVerify: '/patron/verify',
@@ -322,6 +324,7 @@ const productionConfig: ApiConfig = {
     minutesPinStatus: '/minutes/pin/status',
     minutesPinSetup: '/minutes/pin/setup',
     minutesPinVerify: '/minutes/pin/verify',
+    overseerLogin: '/overseer/login',
     patronLogin: '/patron/login',
     patronLogout: '/patron/logout',
     patronVerify: '/patron/verify',
