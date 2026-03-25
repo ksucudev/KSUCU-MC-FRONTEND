@@ -25,6 +25,7 @@ const FinancialsPage: React.FC = () => {
   const [payLoading, setPayLoading] = useState(false);
   const [payMsg, setPayMsg] = useState('');
   const [payError, setPayError] = useState('');
+  const [payStatus, setPayStatus] = useState<'idle' | 'waiting' | 'success' | 'cancelled' | 'timeout' | 'failed'>('idle');
   const [verseIndex] = useState(() => Math.floor(Math.random() * verses.length));
 
   useEffect(() => { fetchContributions(); }, []);
@@ -42,19 +43,80 @@ const FinancialsPage: React.FC = () => {
   const formatAmount = (amount: number) => `KES ${amount.toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
   const formatDate = (d: string) => new Date(d).toLocaleDateString('en-KE', { year: 'numeric', month: 'short', day: 'numeric' });
 
+  const pollStatus = async (checkoutRequestID: string) => {
+    setPayStatus('waiting');
+    setPayMsg('Check your phone and enter your M-Pesa PIN to complete payment...');
+    let attempts = 0;
+    const maxAttempts = 12; // 60 seconds total (5s intervals)
+    const poll = async () => {
+      attempts++;
+      try {
+        const res = await fetch(`/api/finance/mpesa/status/${checkoutRequestID}`, { credentials: 'include' });
+        const data = await res.json();
+        if (data.status === 'success') {
+          setPayStatus('success');
+          setPayMsg('Payment completed successfully! Thank you for your generous giving.');
+          setPayError('');
+          setPayLoading(false);
+          fetchContributions();
+          return;
+        } else if (data.status === 'cancelled') {
+          setPayStatus('cancelled');
+          setPayMsg('');
+          setPayError('You cancelled the payment. You can try again when ready.');
+          setPayLoading(false);
+          return;
+        } else if (data.status === 'timeout') {
+          setPayStatus('timeout');
+          setPayMsg('');
+          setPayError('The payment request timed out. Please try again.');
+          setPayLoading(false);
+          return;
+        } else if (data.status === 'failed') {
+          setPayStatus('failed');
+          setPayMsg('');
+          setPayError(data.message || 'Payment failed. Please try again.');
+          setPayLoading(false);
+          return;
+        }
+      } catch { /* continue polling */ }
+      if (attempts < maxAttempts) {
+        setTimeout(poll, 5000);
+      } else {
+        setPayStatus('timeout');
+        setPayMsg('');
+        setPayError('Could not confirm payment status. If you completed the payment, it will reflect shortly.');
+        setPayLoading(false);
+      }
+    };
+    setTimeout(poll, 5000);
+  };
+
   const handlePay = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPayLoading(true); setPayMsg(''); setPayError('');
+    setPayLoading(true); setPayMsg(''); setPayError(''); setPayStatus('idle');
     try {
       const res = await fetch('/api/finance/member-pay', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
         body: JSON.stringify({ phone: payForm.phone, amount: Number(payForm.amount), category: payForm.category }),
       });
       const data = await res.json();
-      if (res.ok) { setPayMsg(data.message); setPayForm({ phone: '', amount: '', category: 'offering' }); }
-      else setPayError(data.message || 'Payment failed.');
-    } catch { setPayError('Unable to connect to server.'); }
-    setPayLoading(false);
+      if (res.ok) {
+        const checkoutID = data.data?.CheckoutRequestID;
+        if (checkoutID) {
+          pollStatus(checkoutID);
+        } else {
+          setPayMsg('STK push sent. Check your phone to complete payment.');
+          setPayLoading(false);
+        }
+      } else {
+        setPayError(data.message || 'Payment failed.');
+        setPayLoading(false);
+      }
+    } catch {
+      setPayError('Unable to connect to server.');
+      setPayLoading(false);
+    }
   };
 
   const totalContributions = contributions.reduce((sum, c) => sum + c.amount, 0);
@@ -138,8 +200,27 @@ const FinancialsPage: React.FC = () => {
           </div>
         </div>
 
-        {payMsg && <div style={{ padding: '12px 16px', background: '#dcfce7', color: '#166534', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', fontWeight: 500 }}>{payMsg}</div>}
-        {payError && <div style={{ padding: '12px 16px', background: '#fef2f2', color: '#991b1b', borderRadius: '10px', marginBottom: '16px', fontSize: '13px' }}>{payError}</div>}
+        {payStatus === 'waiting' && (
+          <div style={{ padding: '14px 16px', background: '#fffbeb', color: '#92400e', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid #fde68a' }}>
+            <div style={{ width: '20px', height: '20px', border: '3px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <div>
+              <p style={{ margin: 0, fontWeight: 600 }}>Waiting for payment...</p>
+              <p style={{ margin: '2px 0 0', fontSize: '12px', opacity: 0.8 }}>{payMsg}</p>
+            </div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
+        {payStatus === 'success' && payMsg && (
+          <div style={{ padding: '14px 16px', background: '#dcfce7', color: '#166534', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', fontWeight: 500, border: '1px solid #bbf7d0' }}>
+            {payMsg}
+          </div>
+        )}
+        {payStatus === 'idle' && payMsg && (
+          <div style={{ padding: '14px 16px', background: '#dcfce7', color: '#166534', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', fontWeight: 500 }}>{payMsg}</div>
+        )}
+        {payError && (
+          <div style={{ padding: '14px 16px', background: '#fef2f2', color: '#991b1b', borderRadius: '10px', marginBottom: '16px', fontSize: '13px', border: '1px solid #fecaca' }}>{payError}</div>
+        )}
 
         <form onSubmit={handlePay}>
           <div style={{ marginBottom: '14px' }}>
@@ -161,7 +242,7 @@ const FinancialsPage: React.FC = () => {
               color: '#fff', fontSize: '15px', fontWeight: 600, cursor: payLoading ? 'not-allowed' : 'pointer',
               boxShadow: payLoading ? 'none' : '0 4px 14px rgba(76,175,80,0.3)', transition: 'all 0.2s'
             }}>
-            {payLoading ? 'Sending STK Push...' : 'Pay with M-Pesa'}
+            {payLoading && payStatus === 'waiting' ? 'Waiting for payment...' : payLoading ? 'Sending STK Push...' : 'Pay with M-Pesa'}
           </button>
         </form>
       </div>
