@@ -192,19 +192,24 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
     setMpesaStatus('waiting');
     setMpesaMsg('Check the phone and enter M-Pesa PIN...');
     let attempts = 0;
+    let resolved = false;
     const poll = async () => {
+      if (resolved) return;
       attempts++;
       try {
-        const data = await financeApi.get(`/mpesa/status/${checkoutRequestID}`);
+        const res = await fetch(`/api/finance/mpesa/status/${checkoutRequestID}`, { credentials: 'include' });
+        const data = await res.json();
         if (data.status === 'success') {
+          resolved = true;
           setMpesaStatus('success'); setMpesaMsg('Payment completed successfully!');
           setSuccess('Payment completed!'); setError(''); loadTabData(); return;
         } else if (data.status === 'cancelled' || data.status === 'timeout' || data.status === 'failed') {
+          resolved = true;
           setMpesaStatus('failed'); setMpesaMsg(data.message); setError(data.message); return;
         }
       } catch { /* keep polling */ }
-      if (attempts < 15) setTimeout(poll, 5000);
-      else { setMpesaStatus('idle'); setMpesaMsg(''); setError('Could not confirm payment. It may still process.'); }
+      if (!resolved && attempts < 15) setTimeout(poll, 5000);
+      else if (!resolved) { setMpesaStatus('idle'); setMpesaMsg(''); setError('Could not confirm payment. It may still process.'); }
     };
     setTimeout(poll, 7000);
   };
@@ -213,7 +218,13 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
     e.preventDefault();
     setError(''); setSuccess(''); setMpesaStatus('sending'); setMpesaMsg('');
     try {
-      const result = await financeApi.post('/mpesa/stkpush', { ...mpesaForm, amount: Number(mpesaForm.amount) });
+      const res = await fetch('/api/finance/mpesa/stkpush', {
+        method: 'POST', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...mpesaForm, amount: Number(mpesaForm.amount) }),
+      });
+      const result = await res.json();
+      if (!res.ok) { setMpesaStatus('idle'); setError(result.message || 'STK push failed.'); return; }
       const checkoutID = result?.data?.CheckoutRequestID;
       if (checkoutID) {
         pollMpesaStatus(checkoutID);
@@ -221,7 +232,7 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
         setMpesaStatus('idle'); setSuccess('STK push sent. Check the phone.');
       }
       setMpesaForm({ phone: '', amount: '', category: 'offering' });
-    } catch (err: any) { setMpesaStatus('idle'); setError(err.message); }
+    } catch (err: any) { setMpesaStatus('idle'); setError(err.message || 'Request failed.'); }
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
