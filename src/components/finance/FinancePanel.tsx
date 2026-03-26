@@ -16,6 +16,7 @@ interface Transaction {
   source: string;
   phone?: string;
   description?: string;
+  payer_name?: string;
   recorded_by?: { username?: string; email?: string };
   createdAt: string;
 }
@@ -338,7 +339,7 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
       </div>
       <div className={styles.tableWrap}>
         <table className={styles.table}>
-          <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Source</th><th>Recorded By</th></tr></thead>
+          <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Source</th><th>Paid By</th></tr></thead>
           <tbody>
             {transactions.map(tx => (
               <tr key={tx._id}>
@@ -347,7 +348,7 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
                 <td>{tx.category || '-'}</td>
                 <td>{formatAmount(tx.amount)}</td>
                 <td>{tx.source?.toUpperCase()}</td>
-                <td>{tx.recorded_by?.username || tx.recorded_by?.email || '-'}</td>
+                <td>{tx.payer_name || tx.recorded_by?.username || tx.recorded_by?.email || tx.phone || '-'}</td>
               </tr>
             ))}
           </tbody>
