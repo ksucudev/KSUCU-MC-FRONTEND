@@ -75,6 +75,8 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
   const [reqForm, setReqForm] = useState({ reason: '', amount_requested: '' });
   const [assetForm, setAssetForm] = useState({ name: '', description: '', valuation: '', condition: 'good' });
   const [mpesaForm, setMpesaForm] = useState({ phone: '', amount: '', category: 'offering' });
+  const [mpesaStatus, setMpesaStatus] = useState<'idle' | 'sending' | 'waiting' | 'success' | 'failed'>('idle');
+  const [mpesaMsg, setMpesaMsg] = useState('');
   const [userForm, setUserForm] = useState({ name: '', email: '', password: '', role: 'treasurer', phone: '' });
   const [resetModal, setResetModal] = useState<{ id: string; email: string } | null>(null);
   const [resetPassword, setResetPassword] = useState('');
@@ -186,14 +188,40 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
     } catch (err: any) { setError(err.message); }
   };
 
+  const pollMpesaStatus = async (checkoutRequestID: string) => {
+    setMpesaStatus('waiting');
+    setMpesaMsg('Check the phone and enter M-Pesa PIN...');
+    let attempts = 0;
+    const poll = async () => {
+      attempts++;
+      try {
+        const data = await financeApi.get(`/mpesa/status/${checkoutRequestID}`);
+        if (data.status === 'success') {
+          setMpesaStatus('success'); setMpesaMsg('Payment completed successfully!');
+          setSuccess('Payment completed!'); setError(''); loadTabData(); return;
+        } else if (data.status === 'cancelled' || data.status === 'timeout' || data.status === 'failed') {
+          setMpesaStatus('failed'); setMpesaMsg(data.message); setError(data.message); return;
+        }
+      } catch { /* keep polling */ }
+      if (attempts < 15) setTimeout(poll, 5000);
+      else { setMpesaStatus('idle'); setMpesaMsg(''); setError('Could not confirm payment. It may still process.'); }
+    };
+    setTimeout(poll, 7000);
+  };
+
   const handleMpesa = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); setSuccess('');
+    setError(''); setSuccess(''); setMpesaStatus('sending'); setMpesaMsg('');
     try {
-      await financeApi.post('/mpesa/stkpush', { ...mpesaForm, amount: Number(mpesaForm.amount) });
-      setSuccess('STK push sent. Check the phone.');
+      const result = await financeApi.post('/mpesa/stkpush', { ...mpesaForm, amount: Number(mpesaForm.amount) });
+      const checkoutID = result?.data?.CheckoutRequestID;
+      if (checkoutID) {
+        pollMpesaStatus(checkoutID);
+      } else {
+        setMpesaStatus('idle'); setSuccess('STK push sent. Check the phone.');
+      }
       setMpesaForm({ phone: '', amount: '', category: 'offering' });
-    } catch (err: any) { setError(err.message); }
+    } catch (err: any) { setMpesaStatus('idle'); setError(err.message); }
   };
 
   const handleCreateUser = async (e: React.FormEvent) => {
@@ -483,11 +511,28 @@ const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
     <div>
       <h3 className={styles.tabTitle}>M-Pesa STK Push</h3>
       <div style={{ padding: '10px 14px', background: '#fef3c7', color: '#92400e', borderRadius: '8px', marginBottom: '16px', fontSize: '12px', textAlign: 'center', fontWeight: 600, border: '1px solid #fde68a' }}>EBENEZER SOFTWARES — FOR TESTING ONLY</div>
+
+      {mpesaStatus === 'waiting' && (
+        <div style={{ padding: '16px', background: '#fffbeb', borderRadius: '10px', marginBottom: '16px', border: '1px solid #fde68a', textAlign: 'center' }}>
+          <div style={{ width: '24px', height: '24px', border: '3px solid #f59e0b', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 8px' }} />
+          <p style={{ margin: 0, fontWeight: 600, color: '#92400e', fontSize: '13px' }}>Waiting for payment...</p>
+          <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#b45309' }}>{mpesaMsg}</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+      {mpesaStatus === 'success' && (
+        <div style={{ padding: '14px', background: '#dcfce7', borderRadius: '10px', marginBottom: '16px', border: '1px solid #bbf7d0', textAlign: 'center' }}>
+          <p style={{ margin: 0, fontWeight: 600, color: '#166534', fontSize: '13px' }}>{mpesaMsg}</p>
+        </div>
+      )}
+
       <form onSubmit={handleMpesa} className={styles.form}>
         <label>Phone Number<input type="text" value={mpesaForm.phone} onChange={e => setMpesaForm({ ...mpesaForm, phone: e.target.value })} placeholder="0712345678" required /></label>
         <label>Amount (KES)<input type="number" value={mpesaForm.amount} onChange={e => setMpesaForm({ ...mpesaForm, amount: e.target.value })} required min="1" /></label>
         <label>Category<select value={mpesaForm.category} onChange={e => setMpesaForm({ ...mpesaForm, category: e.target.value })}><option value="offering">Offering</option><option value="tithe">Tithe</option><option value="thanksgiving">Thanksgiving</option></select></label>
-        <button type="submit" className={styles.actionBtn}>Send STK Push</button>
+        <button type="submit" className={styles.actionBtn} disabled={mpesaStatus === 'sending' || mpesaStatus === 'waiting'}>
+          {mpesaStatus === 'sending' ? 'Sending...' : mpesaStatus === 'waiting' ? 'Waiting for payment...' : 'Send STK Push'}
+        </button>
       </form>
     </div>
   );
