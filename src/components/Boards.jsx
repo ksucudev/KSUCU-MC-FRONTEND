@@ -28,20 +28,20 @@ function Boards() {
       members: [
         {
           role: "Overseer",
-          name: "John Doe",
+          name: "Emmanuel Ombogo",
           phone: "+254 701 234 567",
           image: "https://via.placeholder.com/80?text=ICT",
         },
         {
           role: "Chairperson",
-          name: "Mary Otieno",
+          name: "Jonah Rubia",
           phone: "+254 702 345 678",
           image: "https://via.placeholder.com/80?text=ICT2",
         },
         {
           role: "Secretary",
-          name: "Samuel Karanja",
-          phone: "+254 703 456 789",
+          name: "Emily Mbugua",
+          phone: "+254 715 472 857",
           image: "https://via.placeholder.com/80?text=ICT3",
         },
       ],
@@ -60,14 +60,14 @@ function Boards() {
       members: [
         {
           role: "Overseer",
-          name: "Jane Smith",
+          name: "Faith Halima",
           phone: "+254 703 456 789",
           image: "https://via.placeholder.com/80?text=ED",
         },
         {
           role: "Chairperson",
-          name: "Brian Odhiambo",
-          phone: "+254 704 567 890",
+          name: "Morgan Joseph",
+          phone: "+254 794 292 751",
           image: "https://via.placeholder.com/80?text=ED2",
         },
         {
@@ -92,19 +92,19 @@ function Boards() {
       members: [
         {
           role: "overseer",
-          name: "Alice Mwangi",
+          name: "Emmanuel Ombogo",
           phone: "+254 705 678 901",
           image: "https://via.placeholder.com/80?text=COM",
         },
         {
           role: "Chairperson",
-          name: "Peter Njoroge",
-          phone: "+254 706 789 012",
+          name: "Euphracia Awour",
+          phone: "+254 715 397 903",
           image: "https://via.placeholder.com/80?text=COM2",
         },
         {
           role: "Secretary",
-          name: "Esther Wairimu",
+          name: "Christian Likhanga",
           phone: "+254 707 890 123",
           image: "https://via.placeholder.com/80?text=COM3",
         },
@@ -124,20 +124,20 @@ function Boards() {
       members: [
         {
           role: "Overseer",
-          name: "David Kimani",
+          name: "Emmanuel Ombogo",
           phone: "+254 707 890 123",
           image: "https://via.placeholder.com/80?text=MED",
         },
         {
           role: "chairperson",
-          name: "Lucy Wanjiru",
-          phone: "+254 708 901 234",
+          name: "Emmanuel John",
+          phone: "+254 792 988 599",
           image: "https://via.placeholder.com/80?text=MED2",
         },
         {
           role: "secretary",
-          name: "Kevin Ochieng",
-          phone: "+254 709 012 345",
+          name: "Roda Mutiso",
+          phone: "+254 758 675 015",
           image: "https://via.placeholder.com/80?text=MED3",
         },
       ],
