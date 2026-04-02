@@ -26,10 +26,10 @@ export const organizationSections: NavSection[] = [
   {
     title: 'Boards',
     items: [
-      { label: 'ICT Board', href: '/boards' },
-      { label: 'Media Board', href: '/boards' },
-      { label: 'Communication Board', href: '/boards' },
-      { label: 'Editorial Board', href: '/boards' },
+      { label: 'ICT Board', href: '/boards/ict' },
+      { label: 'Media Board', href: '/boards/media' },
+      { label: 'Communication Board', href: '/boards/communication' },
+      { label: 'Editorial Board', href: '/boards/editorial' },
     ],
   },
   {
@@ -180,10 +180,10 @@ export const headerNavGroups = {
     {
       title: 'Boards',
       items: [
-        { label: 'ICT Board', href: '/boards' },
-        { label: 'Media Board', href: '/boards' },
-        { label: 'Communication Board', href: '/boards' },
-        { label: 'Editorial Board', href: '/boards' },
+        { label: 'ICT Board', href: '/boards/ict' },
+        { label: 'Media Board', href: '/boards/media' },
+        { label: 'Communication Board', href: '/boards/communication' },
+        { label: 'Editorial Board', href: '/boards/editorial' },
       ],
     },
     {

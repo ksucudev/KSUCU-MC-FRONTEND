@@ -13,7 +13,8 @@ import {
     faHeart,
     faSignOutAlt,
     faComments,
-    faSearch
+    faSearch,
+    faClipboardList
 } from '@fortawesome/free-solid-svg-icons';
 import { useOverseerAuth } from '../hooks/useOverseerAuth';
 
@@ -48,6 +49,7 @@ const WorshipDocketAdmin: React.FC = () => {
         { title: 'Bible Study', desc: 'Registrations & group management', icon: faBookOpen, keywords: ['groups', 'residence', 'bs', 'study'], action: () => navigate('/adminBs') },
         { title: 'Compassion', desc: 'Help requests & donations', icon: faHeart, keywords: ['counseling', 'donate', 'support', 'help'], action: () => navigate('/compassion-counseling-admin') },
         { title: 'Chat', desc: 'Community chat moderation', icon: faComments, keywords: ['moderate', 'messages', 'ban', 'community'], action: () => navigate('/chat-admin') },
+        { title: 'KSUCU admin boards', desc: 'Manage board applications & recruitment', icon: faClipboardList, keywords: ['boards', 'applications', 'recruitment', 'ict', 'media'], action: () => navigate('/admin/board-applications') },
     ], [navigate]);
 
     if (authLoading) {

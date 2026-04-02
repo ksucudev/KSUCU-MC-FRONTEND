@@ -17,7 +17,12 @@ const SignIn = lazy(() => import("../components/signin"));
 const Bs = lazy(() => import("../components/bibleStudy"));
 const SavedSouls = lazy(() => import("./savedSouls"));
 const ClassesSection = lazy(() => import("./classes"));
-const BoardsPage = lazy(() => import("./boards"));
+const BoardsPage = lazy(() => import("../components/Boards"));
+const IctBoardPage = lazy(() => import("./IctBoard"));
+const MediaBoardPage = lazy(() => import("./MediaBoard"));
+const CommunicationBoardPage = lazy(() => import("./CommunicationBoard"));
+const EditorialBoardPage = lazy(() => import("./EditorialBoard"));
+const BoardApplicationsAdminPage = lazy(() => import("./BoardApplicationsAdmin"));
 const ChangeDetails = lazy(() => import("../components/changeDetails"));
 const NewsPage = lazy(() => import("./NewsPage"));
 const PhotoUploadPage = lazy(() => import("./newsadminText"));
@@ -96,6 +101,11 @@ export const router = createBrowserRouter([
             { path: "/save", element: <SavedSouls /> },
             { path: "/fellowshipsandclasses", element: <ClassesSection /> },
             { path: "/boards", element: <BoardsPage /> },
+            { path: "/boards/ict", element: <IctBoardPage /> },
+            { path: "/boards/media", element: <MediaBoardPage /> },
+            { path: "/boards/communication", element: <CommunicationBoardPage /> },
+            { path: "/boards/editorial", element: <EditorialBoardPage /> },
+            { path: "/admin/board-applications", element: <BoardApplicationsAdminPage /> },
             { path: "/changeDetails", element: <ChangeDetails /> },
             { path: "/news", element: <NewsPage /> },
             { path: "/adminnews", element: <PhotoUploadPage /> },

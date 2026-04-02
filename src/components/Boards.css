@@ -277,23 +277,56 @@ footer {
 }
 
 /* ================= RESPONSIVE ================= */
+@media (max-width: 900px) {
+  .boards-container {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+  }
+}
+
 @media (max-width: 600px) {
-  .profile-cards-container {
+  .boards-page-heading h1 {
+    font-size: 2rem !important;
+  }
+
+  .boards-container {
+    padding: 1rem;
+    gap: 1.2rem;
+  }
+
+  .board-image {
+    height: 180px;
+  }
+
+  .board-title {
+    font-size: 1.1rem;
+  }
+
+  .board-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .upload-btn, .contact-btn {
+    width: 100%;
+    margin-right: 0;
+    padding: 0.6rem;
+  }
+
+  .contact-container {
+    position: relative;
+    left: 0;
+    transform: none;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 0.8rem;
     justify-content: center;
   }
 
-  .profile-name-dropdown {
-    font-size: 0.85rem;
-  }
-
-  .profile-phone-dropdown {
-    font-size: 0.75rem;
-    padding: 5px;
-  }
-
-  .social-icons {
-    gap: 1.2rem;
-    margin-bottom: 0.8rem;
+  .contact-box {
+    min-width: 100%;
   }
 
   footer {
@@ -301,6 +334,6 @@ footer {
   }
 
   .footer-text {
-    font-size: 0.8rem;
+    font-size: 1rem !important;
   }
-}
+}

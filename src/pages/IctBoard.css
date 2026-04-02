@@ -1,0 +1,458 @@
+.ict-board-container {
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  background: #ffffff; /* Page turns uniformly white outside the upper header */
+  position: relative;
+  min-height: 100vh;
+}
+
+.ict-hero-section {
+  position: relative;
+  width: 100%;
+  padding-top: 150px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  text-align: center;
+  padding-bottom: 250px;
+}
+
+.ict-hero-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  /* Fades from a dark top directly into pure white precisely below KSUCU words */
+  background: linear-gradient(180deg, rgba(11, 12, 16, 0.8) 0%, rgba(11, 12, 16, 0.9) 60%, rgba(255, 255, 255, 1) 100%);
+  z-index: 1;
+}
+
+.ict-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ict-hero-subtitle {
+  color: #00c6ff;
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.ict-hero-subtitle::before, .ict-hero-subtitle::after {
+  content: "";
+  display: inline-block;
+  width: 40px;
+  height: 2px;
+  background-color: #00c6ff;
+}
+
+.ict-hero-title {
+  font-size: 4rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.ict-hero-title-highlight {
+  color: #00c6ff;
+  text-shadow: 0 0 20px rgba(0, 198, 255, 0.5);
+}
+
+.ict-hero-desc {
+  margin-top: 20px;
+  font-size: 1.1rem;
+  color: #ccc;
+  max-width: 600px;
+}
+
+/* Feature Cards (Light mode adaptation) */
+.ict-features-container {
+  position: relative;
+  z-index: 3;
+  margin-top: -150px;
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  padding: 0 20px;
+  flex-wrap: wrap;
+}
+
+.ict-feature-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  padding: 30px 20px;
+  width: 240px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+.ict-feature-card:hover {
+  border-color: #00c6ff;
+  box-shadow: 0 10px 30px rgba(0, 198, 255, 0.15);
+}
+
+.ict-feature-icon {
+  font-size: 2rem;
+  color: #00c6ff;
+  margin-bottom: 15px;
+}
+
+.ict-feature-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #000;
+}
+
+.ict-feature-desc {
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+.ict-feature-card.active-card {
+  background: linear-gradient(135deg, #730051 0%, #a20072 100%);
+  border-color: #730051;
+  box-shadow: 0 10px 30px rgba(115, 0, 81, 0.3);
+}
+
+.ict-feature-card.active-card .ict-feature-icon,
+.ict-feature-card.active-card .ict-feature-title,
+.ict-feature-card.active-card .ict-feature-desc {
+  color: #fff;
+}
+
+/* Stats Section (Light mode text contrast) */
+.ict-stats-container {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  margin-top: 80px;
+  padding: 0 20px 80px 20px;
+  flex-wrap: wrap;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+}
+
+.ict-stat-box {
+  text-align: center;
+}
+
+.ict-stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #000;
+  margin-bottom: 5px;
+}
+
+.ict-stat-label {
+  font-size: 0.85rem;
+  color: #0056b3;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+/* Ad & Upload Section (Light mode contrast) */
+.ict-recruitment-ad {
+  max-width: 1000px;
+  margin: 0 auto 50px auto;
+  text-align: center;
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  border: 1px solid #00c6ff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 5px 30px rgba(0, 198, 255, 0.1);
+}
+
+.ict-recruitment-ad h2 {
+  color: #0056b3;
+  margin-bottom: 15px;
+  font-size: 2rem;
+}
+
+.ict-recruitment-ad p {
+  color: #333;
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+}
+
+.ict-join-info {
+  background: linear-gradient(135deg, #730051 0%, #a20072 100%);
+  padding: 30px;
+  border-radius: 12px;
+  margin-top: 30px;
+  text-align: left;
+  border: 1px solid #730051;
+  box-shadow: 0 10px 30px rgba(115, 0, 81, 0.25);
+}
+
+.ict-join-info h3 {
+  color: #fff;
+  margin-bottom: 15px;
+}
+
+.ict-join-info ol {
+  color: #fff;
+  margin-left: 20px;
+  margin-bottom: 25px;
+  line-height: 1.8;
+}
+
+.ict-upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.ict-file-input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: #ffffff;
+  color: #333;
+  width: 100%;
+  outline: none;
+}
+
+.ict-file-input::placeholder {
+  color: #999;
+}
+
+.ict-file-input::file-selector-button {
+  background: #00c6ff;
+  color: #fff;
+  border: none;
+  padding: 5px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 15px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.ict-file-input::file-selector-button:hover {
+  background: #0072ff;
+}
+
+.ict-action-btn {
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  color: #fff;
+  border: none;
+  padding: 15px 35px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 5px 20px rgba(0, 198, 255, 0.4);
+}
+.ict-action-btn:hover {
+  box-shadow: 0 8px 30px rgba(0, 198, 255, 0.6);
+}
+
+/* Members Component (Light Theme) */
+.ict-members-section {
+  max-width: 1000px;
+  margin: 0 auto 100px auto;
+  padding: 40px;
+  background: rgba(115, 0, 81, 0.03);
+  border: 1px solid rgba(115, 0, 81, 0.1);
+  border-radius: 12px;
+}
+
+.ict-members-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.ict-member-card {
+  background: #fff;
+  padding: 30px 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+.ict-member-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 15px;
+  border: 4px solid #00c6ff;
+}
+
+.ict-member-role {
+  color: #0056b3;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+  display: block;
+  font-weight: bold;
+}
+
+.ict-member-name {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #000;
+}
+
+.ict-member-phone {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #730051;
+  padding: 10px 20px;
+  border-radius: 20px;
+}
+.ict-member-phone:hover {
+  background: #a20072;
+}
+
+/* ===================== MOBILE RESPONSIVE ===================== */
+@media (max-width: 768px) {
+  .ict-hero-section {
+    padding-top: 100px;
+    padding-bottom: 200px;
+  }
+
+  .ict-hero-title {
+    font-size: 2.4rem;
+    padding: 0 15px;
+  }
+
+  .ict-hero-subtitle {
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+  }
+
+  .ict-hero-subtitle::before,
+  .ict-hero-subtitle::after {
+    width: 20px;
+  }
+
+  .ict-hero-desc {
+    font-size: 0.95rem;
+    padding: 0 20px;
+  }
+
+  .ict-features-container {
+    margin-top: -120px;
+    gap: 15px;
+    padding: 0 15px;
+  }
+
+  .ict-feature-card {
+    width: 100%;
+    max-width: 340px;
+    padding: 20px 15px;
+  }
+
+  .ict-stats-container {
+    margin-top: 40px;
+    padding: 0 15px 50px;
+    gap: 20px;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .ict-recruitment-ad {
+    margin: 0 15px 40px;
+    padding: 25px 18px;
+  }
+
+  .ict-recruitment-ad h2 {
+    font-size: 1.4rem;
+  }
+
+  .ict-recruitment-ad p {
+    font-size: 0.95rem;
+  }
+
+  .ict-join-info {
+    padding: 20px 15px;
+  }
+
+  .ict-upload-form {
+    gap: 12px;
+  }
+
+  .ict-action-btn {
+    padding: 12px 24px;
+    font-size: 0.95rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .ict-members-section {
+    margin: 0 15px 60px;
+    padding: 25px 15px;
+  }
+
+  .ict-members-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .ict-member-card {
+    padding: 20px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ict-hero-section {
+    padding-top: 80px;
+    padding-bottom: 170px;
+  }
+
+  .ict-hero-title {
+    font-size: 1.9rem;
+  }
+
+  .ict-hero-desc {
+    font-size: 0.88rem;
+  }
+
+  .ict-features-container {
+    margin-top: -100px;
+  }
+
+  .ict-feature-card {
+    padding: 18px 12px;
+  }
+
+  .ict-feature-title {
+    font-size: 1rem;
+  }
+
+  .ict-recruitment-ad h2 {
+    font-size: 1.2rem;
+  }
+
+  .ict-member-img {
+    width: 80px;
+    height: 80px;
+  }
+
+  .ict-member-name {
+    font-size: 1.1rem;
+  }
+}

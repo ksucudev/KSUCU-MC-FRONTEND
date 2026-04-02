@@ -1,10 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { boards } from "../data/boardsData";
 import "./Boards.css";
 
-import ictBoardImg from "../assets/Screenshot 2026-01-28 185706.png";
-import editorialBoardImg from "../assets/IMG-20260129-WA0046.jpg";
-import commBoardImg from "../assets/comm board.jpg";
-import mediaBoardImg from "../assets/professional-camera-blurred-background-with-laptop.jpg";
 import logoImg from "../assets/KSUCU logo updated.png";
 
 
@@ -14,156 +12,11 @@ function Boards() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [activeContact, setActiveContact] = useState(null);
 
-  const boards = [
-    {
-      id: "ict",
-      title: "ICT Board",
-      icon: "fas fa-laptop-code",
-      image: ictBoardImg,
-      description:
-        "Consists of the public secretary as the overseer, with chairperson and secretary to the board nominated by the board members. Other members are approved by the board. Prepares and updates the KSUCU-MC database. Manages the Facebook account and the union website. Projects all the union activities.",
-      social: [
-        { icon: "fab fa-facebook", url: "https://www.facebook.com/ksucumc/" },
-      ],
-      members: [
-        {
-          role: "Overseer",
-          name: "John Doe",
-          phone: "+254 701 234 567",
-          image: "https://via.placeholder.com/80?text=ICT",
-        },
-        {
-          role: "Chairperson",
-          name: "Mary Otieno",
-          phone: "+254 702 345 678",
-          image: "https://via.placeholder.com/80?text=ICT2",
-        },
-        {
-          role: "Secretary",
-          name: "Samuel Karanja",
-          phone: "+254 703 456 789",
-          image: "https://via.placeholder.com/80?text=ICT3",
-        },
-      ],
-    },
-
-    {
-      id: "Editorial",
-      title: "Editorial Board",
-      icon: "fas fa-pen-fancy",
-      image: editorialBoardImg,
-      description:
-        "Consists of the board coordinator as overseer with chairperson and secretary nominated by the board members. Responsible for Beyond Horizon magazine and approved publications.",
-      social: [
-        { icon: "fab fa-instagram", url: "https://www.instagram.com/ksucumc/" },
-      ],
-      members: [
-        {
-          role: "Overseer",
-          name: "Jane Smith",
-          phone: "+254 703 456 789",
-          image: "https://via.placeholder.com/80?text=ED",
-        },
-        {
-          role: "Chairperson",
-          name: "Brian Odhiambo",
-          phone: "+254 704 567 890",
-          image: "https://via.placeholder.com/80?text=ED2",
-        },
-        {
-          role: "Secretary",
-          name: "Faith Ndegwa",
-          phone: "+254 705 678 901",
-          image: "https://via.placeholder.com/80?text=ED3",
-        },
-      ],
-    },
-
-    {
-      id: "communication",
-      title: "Communication Board",
-      icon: "fas fa-comments",
-      image: commBoardImg,
-      description:
-        "Consists of the boards co-ordinator as the overseer with chairperson and secretary to the board nominated by the board members. Other members approved by the board members. Two default members pursuing computer related courses and two defaults pursuing literature. Responsible for publishing the beyond horizon magazine and any publication approved by executive. Responsible for any sell of publications.",
-      social: [
-        { icon: "fab fa-tiktok", url: "https://www.tiktok.com/@kisiiuniversitycu" }
-      ],
-      members: [
-        {
-          role: "overseer",
-          name: "Alice Mwangi",
-          phone: "+254 705 678 901",
-          image: "https://via.placeholder.com/80?text=COM",
-        },
-        {
-          role: "Chairperson",
-          name: "Peter Njoroge",
-          phone: "+254 706 789 012",
-          image: "https://via.placeholder.com/80?text=COM2",
-        },
-        {
-          role: "Secretary",
-          name: "Esther Wairimu",
-          phone: "+254 707 890 123",
-          image: "https://via.placeholder.com/80?text=COM3",
-        },
-      ],
-    },
-
-    {
-      id: "media",
-      title: "Media Board",
-      icon: "fas fa-camera-retro",
-      image: mediaBoardImg,
-      description:
-        "Responsible for photography, videography, livestreaming, editing, and documenting Christian Union activities and events Consists of the public secretary as the overseer to the board, chairperson and secretary nominated by the board members.Other members appproved by the board.Responsible for: Covering all union events through photography and videography.Managing KSUCU-MC YouTube channel.Advice the executive on buying, maitaining and didposing of board's assets.",
-      social: [
-        { icon: "fab fa-youtube", url: "https://www.youtube.com/@KSUCU-MC" }
-      ],
-      members: [
-        {
-          role: "Overseer",
-          name: "David Kimani",
-          phone: "+254 707 890 123",
-          image: "https://via.placeholder.com/80?text=MED",
-        },
-        {
-          role: "chairperson",
-          name: "Lucy Wanjiru",
-          phone: "+254 708 901 234",
-          image: "https://via.placeholder.com/80?text=MED2",
-        },
-        {
-          role: "secretary",
-          name: "Kevin Ochieng",
-          phone: "+254 709 012 345",
-          image: "https://via.placeholder.com/80?text=MED3",
-        },
-      ],
-    },
-  ];
-
   return (
     <>
-      {/* ========== HEADER ========== */}
-      <header className="header">
-        <div className="logo-section">
-          <div className="logo">
-            <img src={logoImg} alt="KSUCU Logo" className="logo-image" />
-          </div>
-          {/* kisucu AI icon placed next to text */}
-          <i className="fas fa-robot ksucu-ai-icon" title="KSUCU AI"></i>
-          <div className="logo-text">
-            Kisii University Christian Union
-          </div>
-        </div>
-        <nav>
-          <a href="#">Home</a>
-          <a href="#" className="active">Boards</a>
-          <a href="#">Contact</a>
-        </nav>
-      </header>
+      <div className="boards-page-heading" style={{ textAlign: "center", padding: "3rem 1rem 1rem" }}>
+        <h1 style={{ fontSize: "2.5rem", fontWeight: "bold", color: "#000" }}>BOARDS</h1>
+      </div>
 
       {/* ========== BOARDS SECTION ========== */}
       <main className="boards-container">
@@ -205,6 +58,10 @@ function Boards() {
                     ))}
                   </div>
                 )}
+
+                <Link to={`/boards/${board.id}`} state={{ board }} className="upload-btn" style={{ textDecoration: 'none', display: 'inline-block', textAlign: 'center' }}>
+                  <i className="fas fa-eye"></i> View Full Page
+                </Link>
 
                 <button
                   className="upload-btn"
@@ -293,16 +150,9 @@ function Boards() {
       )}
 
       {/* ========== FOOTER ========== */}
-      <footer className="footer">
-        <div className="footer-social-icons">
-          <a href="#"><i className="fab fa-facebook"></i></a>
-          <a href="#"><i className="fab fa-twitter"></i></a>
-          <a href="#"><i className="fab fa-instagram"></i></a>
-          <a href="#"><i className="fab fa-youtube"></i></a>
-          <a href="#"><i className="fab fa-linkedin"></i></a>
-        </div>
-        <p className="footer-text">
-          &copy; 2026 Kisii University Christian Union.
+      <footer className="footer" style={{ textAlign: "center", padding: "1.5rem", backgroundColor: "#fff", color: "#000" }}>
+        <p className="footer-text" style={{ fontSize: "1.2rem", margin: 0, color: "#000" }}>
+          Come all let's serve the Lord
         </p>
       </footer>
     </>
