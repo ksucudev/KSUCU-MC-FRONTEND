@@ -646,6 +646,8 @@ const Header = () => {
     return null;
   };
   const activeNav = getActiveNav(location.pathname);
+  
+  const isPatronDashboard = location.pathname.startsWith('/patron');
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -793,7 +795,13 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 md:px-6">
           <div className="flex items-center h-16 md:h-16 xl:h-20 md:pl-0">
             <button
-              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+              onClick={() => {
+                if (isPatronDashboard) {
+                  window.dispatchEvent(new Event('togglePatronSidebar'));
+                } else {
+                  setIsSidebarExpanded(!isSidebarExpanded);
+                }
+              }}
               className="md:hidden p-2 rounded-lg flex-shrink-0 hover:bg-gray-100 transition-colors"
               aria-label="Toggle Menu"
             >
@@ -817,39 +825,41 @@ const Header = () => {
             </Link>
 
             {/* Mobile User/Sign In Button */}
-            <div className="md:hidden flex-shrink-0">
-              {isAdmin && isPatron ? (
-                <button onClick={() => navigate('/patron')} className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 bg-white hover:bg-purple-50 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center bg-[#730051] text-white">
-                    <Crown size={12} strokeWidth={2.5} />
-                  </div>
-                  <span className="text-[10px] leading-none tracking-tight">Patron</span>
-                </button>
-              ) : isAdmin ? (
-                <button onClick={handleAdminLogout} className="flex items-center gap-1 pl-1 pr-2 py-1 bg-[#730051] text-white rounded-full transition-all shadow-sm active:scale-95 whitespace-nowrap">
-                  <LogOut size={12} strokeWidth={2.5} />
-                  <span className="text-[10px] font-bold">Log Out</span>
-                </button>
-              ) : userData ? (
-                <button onClick={() => navigate('/changeDetails')} className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 bg-white hover:bg-purple-50 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap group">
-                  <div className="w-6 h-6 rounded-full overflow-hidden border-2 border-[#730051] flex items-center justify-center bg-[#730051]/5 transition-transform group-hover:scale-110">
-                    {userData.profilePhoto ? (
-                      <img src={getImageUrl(userData.profilePhoto)} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={14} className="text-[#730051]" strokeWidth={2.5} />
-                    )}
-                  </div>
-                  <span className="text-[10px] capitalize leading-none tracking-tight">{userData.username}</span>
-                </button>
-              ) : (
-                <Link to="/signIn" className="flex items-center gap-1 pl-1 pr-2 py-1 bg-purple-50 hover:bg-[#730051]/10 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap">
-                  <div className="bg-[#730051] text-white p-0.5 rounded-full flex items-center justify-center">
-                    <LogIn size={12} strokeWidth={2.5} />
-                  </div>
-                  <span className="text-[10px] leading-none tracking-tight">Log In</span>
-                </Link>
-              )}
-            </div>
+            {!isPatronDashboard && (
+              <div className="md:hidden flex-shrink-0">
+                {isAdmin && isPatron ? (
+                  <button onClick={() => navigate('/patron')} className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 bg-white hover:bg-purple-50 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center bg-[#730051] text-white">
+                      <Crown size={12} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[10px] leading-none tracking-tight">Patron</span>
+                  </button>
+                ) : isAdmin ? (
+                  <button onClick={handleAdminLogout} className="flex items-center gap-1 pl-1 pr-2 py-1 bg-[#730051] text-white rounded-full transition-all shadow-sm active:scale-95 whitespace-nowrap">
+                    <LogOut size={12} strokeWidth={2.5} />
+                    <span className="text-[10px] font-bold">Log Out</span>
+                  </button>
+                ) : userData ? (
+                  <button onClick={() => navigate('/changeDetails')} className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 bg-white hover:bg-purple-50 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap group">
+                    <div className="w-6 h-6 rounded-full overflow-hidden border-2 border-[#730051] flex items-center justify-center bg-[#730051]/5 transition-transform group-hover:scale-110">
+                      {userData.profilePhoto ? (
+                        <img src={getImageUrl(userData.profilePhoto)} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={14} className="text-[#730051]" strokeWidth={2.5} />
+                      )}
+                    </div>
+                    <span className="text-[10px] capitalize leading-none tracking-tight">{userData.username}</span>
+                  </button>
+                ) : (
+                  <Link to="/signIn" className="flex items-center gap-1 pl-1 pr-2 py-1 bg-purple-50 hover:bg-[#730051]/10 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap">
+                    <div className="bg-[#730051] text-white p-0.5 rounded-full flex items-center justify-center">
+                      <LogIn size={12} strokeWidth={2.5} />
+                    </div>
+                    <span className="text-[10px] leading-none tracking-tight">Log In</span>
+                  </Link>
+                )}
+              </div>
+            )}
 
             <Link to="/" className="hidden md:flex items-center gap-2 xl:gap-3 flex-shrink-0">
               <img src={cuLogo} alt="KSUCU Logo" className="w-10 h-10 xl:w-14 xl:h-14 object-contain flex-shrink-0" />
@@ -868,110 +878,120 @@ const Header = () => {
               </div>
             </Link>
 
-            <nav className="hidden md:flex items-center flex-1 min-w-0 md:ml-2 lg:ml-4 xl:ml-8">
-              {/* Centered nav links */}
-              <div className="flex-1 flex items-center justify-center gap-0.5 lg:gap-1.5 xl:gap-4 min-w-0">
-                <Link to="/" className={`nav-link-underline px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${location.pathname === '/' ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>Home</Link>
+            {!isPatronDashboard ? (
+              <nav className="hidden md:flex items-center flex-1 min-w-0 md:ml-2 lg:ml-4 xl:ml-8">
+                {/* Centered nav links */}
+                <div className="flex-1 flex items-center justify-center gap-0.5 lg:gap-1.5 xl:gap-4 min-w-0">
+                  <Link to="/" className={`nav-link-underline px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${location.pathname === '/' ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>Home</Link>
 
-                {/* Join Us dropdown */}
-                <div className="relative" onMouseEnter={() => handleMouseEnter('joinUs')} onMouseLeave={handleMouseLeave}>
-                  <button className={`nav-link-underline flex items-center gap-0.5 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${activeDropdown === 'joinUs' || ['ministries', 'boards', 'eteams', 'fellowships', 'biblestudy', 'classes'].includes(activeNav || '') ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
-                    Join Us
-                    <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform ${activeDropdown === 'joinUs' ? 'rotate-180' : ''}`} />
-                  </button>
-                  {activeDropdown === 'joinUs' && renderJoinUsPanel()}
-                </div>
+                  {/* Join Us dropdown */}
+                  <div className="relative" onMouseEnter={() => handleMouseEnter('joinUs')} onMouseLeave={handleMouseLeave}>
+                    <button className={`nav-link-underline flex items-center gap-0.5 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${activeDropdown === 'joinUs' || ['ministries', 'boards', 'eteams', 'fellowships', 'biblestudy', 'classes'].includes(activeNav || '') ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
+                      Join Us
+                      <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform ${activeDropdown === 'joinUs' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {activeDropdown === 'joinUs' && renderJoinUsPanel()}
+                  </div>
 
-                <div className="relative" onMouseEnter={() => handleMouseEnter('services')} onMouseLeave={handleMouseLeave}>
-                  <button className={`nav-link-underline flex items-center gap-0.5 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${activeDropdown === 'services' || ['financials', 'feedback', 'compassion', 'requisitions', 'filemanager', 'library', 'winasoul'].includes(activeNav || '') ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
-                    Services
-                    <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform ${activeDropdown === 'services' ? 'rotate-180' : ''}`} />
-                  </button>
-                  {activeDropdown === 'services' && renderServicesCascade()}
-                </div>
+                  <div className="relative" onMouseEnter={() => handleMouseEnter('services')} onMouseLeave={handleMouseLeave}>
+                    <button className={`nav-link-underline flex items-center gap-0.5 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${activeDropdown === 'services' || ['financials', 'feedback', 'compassion', 'requisitions', 'filemanager', 'library', 'winasoul'].includes(activeNav || '') ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
+                      Services
+                      <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform ${activeDropdown === 'services' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {activeDropdown === 'services' && renderServicesCascade()}
+                  </div>
 
-                <div className="relative" onMouseEnter={() => handleMouseEnter('governance')} onMouseLeave={handleMouseLeave}>
-                  <button className={`nav-link-underline flex items-center gap-0.5 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${activeDropdown === 'governance' || ['leadership', 'governingdocs', 'committees'].includes(activeNav || '') ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
-                    Governance
-                    <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform ${activeDropdown === 'governance' ? 'rotate-180' : ''}`} />
-                  </button>
-                  {activeDropdown === 'governance' && renderCascadePanel(headerNavGroups.governance, true)}
-                </div>
+                  <div className="relative" onMouseEnter={() => handleMouseEnter('governance')} onMouseLeave={handleMouseLeave}>
+                    <button className={`nav-link-underline flex items-center gap-0.5 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${activeDropdown === 'governance' || ['leadership', 'governingdocs', 'committees'].includes(activeNav || '') ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
+                      Governance
+                      <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform ${activeDropdown === 'governance' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {activeDropdown === 'governance' && renderCascadePanel(headerNavGroups.governance, true)}
+                  </div>
 
-                {/* Media Desk dropdown */}
-                <div className="relative" onMouseEnter={() => handleMouseEnter('mediaDesk')} onMouseLeave={handleMouseLeave}>
-                  <button className={`nav-link-underline flex items-center gap-0.5 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${activeDropdown === 'mediaDesk' || activeNav === 'mediaDesk' ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
-                    Media
-                    <span className="hidden xl:inline">&nbsp;Desk</span>
-                    <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform ${activeDropdown === 'mediaDesk' ? 'rotate-180' : ''}`} />
-                  </button>
-                  {activeDropdown === 'mediaDesk' && renderMediaDeskPanel()}
-                </div>
+                  {/* Media Desk dropdown */}
+                  <div className="relative" onMouseEnter={() => handleMouseEnter('mediaDesk')} onMouseLeave={handleMouseLeave}>
+                    <button className={`nav-link-underline flex items-center gap-0.5 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm whitespace-nowrap ${activeDropdown === 'mediaDesk' || activeNav === 'mediaDesk' ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
+                      Media
+                      <span className="hidden xl:inline">&nbsp;Desk</span>
+                      <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform ${activeDropdown === 'mediaDesk' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {activeDropdown === 'mediaDesk' && renderMediaDeskPanel()}
+                  </div>
 
-                <div className="relative" onMouseEnter={() => handleMouseEnter('attendance')} onMouseLeave={handleMouseLeave}>
-                  <button className={`nav-link-underline flex items-center gap-0.5 xl:gap-2 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm transition-all relative whitespace-nowrap ${activeDropdown === 'attendance' || activeNav === 'attendance' ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
-                    Attendance
-                    {activeSessions.length > 0 && (
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-                      </span>
-                    )}
-                    <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform duration-300 ${activeDropdown === 'attendance' ? 'rotate-180' : ''}`} />
-                  </button>
-                  {activeDropdown === 'attendance' && renderAttendanceDropdown()}
-                </div>
-              </div>
-
-              {/* Sign In / User / Admin Logout / Patron button - always right */}
-              <div className="flex-shrink-0 ml-2 xl:ml-4">
-                {isAdmin && isPatron ? (
-                  <button onClick={() => navigate('/patron')} className="flex items-center gap-2 pl-1.5 pr-4 py-1.5 bg-white hover:bg-purple-50 border-2 border-[#730051]/10 hover:border-[#730051]/30 rounded-full font-bold text-[#730051] transition-all shadow-md hover:shadow-[#730051]/5 active:scale-95 whitespace-nowrap group">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#730051] text-white transition-all group-hover:ring-2 group-hover:ring-purple-200">
-                      <Crown size={16} strokeWidth={2.5} />
-                    </div>
-                    <span className="text-[12px] xl:text-[13px] leading-none tracking-tight">Patron</span>
-                  </button>
-                ) : isAdmin ? (
-                  <button onClick={handleAdminLogout} className="flex items-center gap-1.5 px-2.5 xl:px-4 py-1.5 xl:py-2 bg-[#730051] text-white font-medium text-[11px] xl:text-sm rounded-lg hover:bg-[#5a0040] transition-colors shadow-lg shadow-purple-900/10 active:scale-95 transform transition-all whitespace-nowrap">
-                    <LogOut size={16} className="xl:w-[18px] xl:h-[18px]" />
-                    <span className="hidden xl:inline">Log Out</span>
-                  </button>
-                ) : userData ? (
-                  <button onClick={() => navigate('/changeDetails')} className="flex items-center gap-2 pl-1.5 pr-4 py-1.5 bg-white hover:bg-purple-50 border-2 border-[#730051]/10 hover:border-[#730051]/30 rounded-full font-bold text-[#730051] transition-all shadow-md hover:shadow-[#730051]/5 active:scale-95 whitespace-nowrap group">
-                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#730051] flex items-center justify-center bg-[#730051]/5 transition-all group-hover:ring-2 group-hover:ring-purple-200">
-                      {userData.profilePhoto ? (
-                        <img src={getImageUrl(userData.profilePhoto)} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <User size={18} className="text-[#730051]" strokeWidth={2.5} />
+                  <div className="relative" onMouseEnter={() => handleMouseEnter('attendance')} onMouseLeave={handleMouseLeave}>
+                    <button className={`nav-link-underline flex items-center gap-0.5 xl:gap-2 px-1 lg:px-2 xl:px-3 py-2 font-medium text-[11px] lg:text-xs xl:text-sm transition-all relative whitespace-nowrap ${activeDropdown === 'attendance' || activeNav === 'attendance' ? 'text-[#730051] nav-link-active' : 'text-gray-700'}`}>
+                      Attendance
+                      {activeSessions.length > 0 && (
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+                        </span>
                       )}
-                    </div>
-                    <span className="text-[12px] xl:text-[13px] capitalize leading-none tracking-tight">{userData.username}</span>
-                  </button>
-                ) : (
-                  <Link to="/signIn" className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 bg-purple-50 hover:bg-[#730051]/10 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap">
-                    <div className="bg-[#730051] text-white p-1 rounded-full flex items-center justify-center">
-                      <LogIn size={14} className="xl:w-[16px] xl:h-[16px]" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-[11px] xl:text-sm leading-none tracking-tight">Log In</span>
-                  </Link>
-                )}
+                      <ChevronDown size={12} className={`xl:w-[14px] xl:h-[14px] transition-transform duration-300 ${activeDropdown === 'attendance' ? 'rotate-180' : ''}`} />
+                    </button>
+                    {activeDropdown === 'attendance' && renderAttendanceDropdown()}
+                  </div>
+                </div>
+
+                {/* Sign In / User / Admin Logout / Patron button - always right */}
+                <div className="flex-shrink-0 ml-2 xl:ml-4">
+                  {isAdmin && isPatron ? (
+                    <button onClick={() => navigate('/patron')} className="flex items-center gap-2 pl-1.5 pr-4 py-1.5 bg-white hover:bg-purple-50 border-2 border-[#730051]/10 hover:border-[#730051]/30 rounded-full font-bold text-[#730051] transition-all shadow-md hover:shadow-[#730051]/5 active:scale-95 whitespace-nowrap group">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[#730051] text-white transition-all group-hover:ring-2 group-hover:ring-purple-200">
+                        <Crown size={16} strokeWidth={2.5} />
+                      </div>
+                      <span className="text-[12px] xl:text-[13px] leading-none tracking-tight">Patron</span>
+                    </button>
+                  ) : isAdmin ? (
+                    <button onClick={handleAdminLogout} className="flex items-center gap-1.5 px-2.5 xl:px-4 py-1.5 xl:py-2 bg-[#730051] text-white font-medium text-[11px] xl:text-sm rounded-lg hover:bg-[#5a0040] transition-colors shadow-lg shadow-purple-900/10 active:scale-95 transform transition-all whitespace-nowrap">
+                      <LogOut size={16} className="xl:w-[18px] xl:h-[18px]" />
+                      <span className="hidden xl:inline">Log Out</span>
+                    </button>
+                  ) : userData ? (
+                    <button onClick={() => navigate('/changeDetails')} className="flex items-center gap-2 pl-1.5 pr-4 py-1.5 bg-white hover:bg-purple-50 border-2 border-[#730051]/10 hover:border-[#730051]/30 rounded-full font-bold text-[#730051] transition-all shadow-md hover:shadow-[#730051]/5 active:scale-95 whitespace-nowrap group">
+                      <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-[#730051] flex items-center justify-center bg-[#730051]/5 transition-all group-hover:ring-2 group-hover:ring-purple-200">
+                        {userData.profilePhoto ? (
+                          <img src={getImageUrl(userData.profilePhoto)} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <User size={18} className="text-[#730051]" strokeWidth={2.5} />
+                        )}
+                      </div>
+                      <span className="text-[12px] xl:text-[13px] capitalize leading-none tracking-tight">{userData.username}</span>
+                    </button>
+                  ) : (
+                    <Link to="/signIn" className="flex items-center gap-1.5 pl-1.5 pr-3 py-1 bg-purple-50 hover:bg-[#730051]/10 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap">
+                      <div className="bg-[#730051] text-white p-1 rounded-full flex items-center justify-center">
+                        <LogIn size={14} className="xl:w-[16px] xl:h-[16px]" strokeWidth={2.5} />
+                      </div>
+                      <span className="text-[11px] xl:text-sm leading-none tracking-tight">Log In</span>
+                    </Link>
+                  )}
+                </div>
+              </nav>
+            ) : (
+              <div className="hidden md:flex items-center flex-1 justify-end pr-4">
+                 <span className="flex items-center gap-2 font-bold text-[#c9a227] tracking-wider text-sm bg-[#370026]/5 px-4 py-1.5 rounded-full border border-[#370026]/10 shadow-sm">
+                   <Crown size={16} /> PATRON WORKSPACE
+                 </span>
               </div>
-            </nav>
+            )}
           </div>
         </div>
       </header>
 
       {activeDropdown && <div className="fixed inset-0 z-40 hidden md:block" onClick={closeDropdown} />}
 
-      <MobileSidebarMenu
-        userData={userData}
-        activeSessions={activeSessions}
-        onNavigate={(path: string) => navigate(path)}
-        activeNav={activeNav}
-        isManualExpanded={isSidebarExpanded}
-        setIsManualExpanded={setIsSidebarExpanded}
-      />
+      {!isPatronDashboard && (
+        <MobileSidebarMenu
+          userData={userData}
+          activeSessions={activeSessions}
+          onNavigate={(path: string) => navigate(path)}
+          activeNav={activeNav}
+          isManualExpanded={isSidebarExpanded}
+          setIsManualExpanded={setIsSidebarExpanded}
+        />
+      )}
 
       {signingSession && (
         <QuickAttendanceSign

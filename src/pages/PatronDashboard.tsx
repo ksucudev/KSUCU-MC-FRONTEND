@@ -4,13 +4,17 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import styles from '../styles/superAdmin.module.css';
-import { Menu, X, Search } from 'lucide-react';
+import { Menu, X, Search, RefreshCw, User, Mail, Phone, BookOpen } from 'lucide-react';
 import { getApiUrl, getImageUrl } from '../config/environment';
 import letterhead from '../assets/letterhead.png';
 import PatronSidebar, { PatronSection } from '../components/PatronSidebar';
+import { financeApi } from '../services/financeApi';
 import FinancePanel from '../components/finance/FinancePanel';
+import AnalyticsCharts from '../components/patron/AnalyticsCharts';
+import { ET_LIST, MINISTRY_LIST, parseEts, parseMinistries } from '../utils/constants';
 
 interface User {
+    _id: string;
     username: string;
     email: string;
     phone: string;
@@ -19,6 +23,17 @@ interface User {
     yos: string;
     ministry: string;
     et: string;
+    profilePhoto?: string;
+    createdAt?: string;
+}
+
+interface FinanceTransaction {
+    _id: string;
+    type: string;
+    category: string;
+    amount: number;
+    source: string;
+    createdAt: string;
 }
 
 interface Message {
@@ -56,8 +71,10 @@ const PatronDashboard: React.FC = () => {
     const [usersByMinistry, setUsersByMinistry] = useState<{ [key: string]: number }>({});
     const [usersByEt, setUsersByEt] = useState<{ [key: string]: number }>({});
     const [messages, setMessages] = useState<Message[]>([]);
+    const [financeTransactions, setFinanceTransactions] = useState<FinanceTransaction[]>([]);
     const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [financeLoading, setFinanceLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     // UI state
@@ -66,6 +83,8 @@ const PatronDashboard: React.FC = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedYos, setSelectedYos] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState<string>('');
+    const [showFullSize, setShowFullSize] = useState<string | null>(null);
+    const [membersLoading, setMembersLoading] = useState<boolean>(false);
 
     // Password change state
     const [currentPassword, setCurrentPassword] = useState('');
@@ -77,12 +96,16 @@ const PatronDashboard: React.FC = () => {
 
     useEffect(() => {
         verifyAndFetchData();
+        
+        const handleToggleSidebar = () => setSidebarOpen(prev => !prev);
+        window.addEventListener('togglePatronSidebar', handleToggleSidebar);
+        return () => window.removeEventListener('togglePatronSidebar', handleToggleSidebar);
     }, []);
 
     const verifyAndFetchData = async () => {
         try {
             await axios.get(getApiUrl('patronVerify'), { withCredentials: true });
-            await Promise.all([fetchUsers(), fetchMessages(), fetchMedia()]);
+            await Promise.all([fetchUsers(), fetchMessages(), fetchMedia(), fetchFinanceData()]);
         } catch (err: any) {
             if (err.response?.status === 401 || err.response?.status === 403) {
                 navigate('/signIn');
@@ -94,7 +117,8 @@ const PatronDashboard: React.FC = () => {
         }
     };
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (showLoader = false) => {
+        if (showLoader) setMembersLoading(true);
         const response = await axios.get(getApiUrl('patronUsers'), { withCredentials: true });
         const userData = response.data;
 
@@ -107,13 +131,22 @@ const PatronDashboard: React.FC = () => {
 
         userData.forEach((user: User) => {
             if (user.yos) groupedByYos[user.yos] = (groupedByYos[user.yos] || 0) + 1;
-            if (user.ministry) groupedByMinistry[user.ministry] = (groupedByMinistry[user.ministry] || 0) + 1;
-            if (user.et) groupedByEt[user.et] = (groupedByEt[user.et] || 0) + 1;
+            
+            const userMinistries = parseMinistries(user.ministry);
+            userMinistries.forEach(m => {
+                groupedByMinistry[m] = (groupedByMinistry[m] || 0) + 1;
+            });
+
+            const userEts = parseEts(user.et);
+            userEts.forEach(et => {
+                groupedByEt[et] = (groupedByEt[et] || 0) + 1;
+            });
         });
 
         setUsersByYos(groupedByYos);
         setUsersByMinistry(groupedByMinistry);
         setUsersByEt(groupedByEt);
+        if (showLoader) setMembersLoading(false);
     };
 
     const fetchMessages = async () => {
@@ -137,6 +170,18 @@ const PatronDashboard: React.FC = () => {
         { event: "Hymn Sunday", date: "23rd March", link: "https://photos.app.goo.gl/RWWRM2zp9LkmVgtU6" },
         { event: "Sunday service", date: "24th March", link: "https://photos.app.goo.gl/UnA7f6Aqp3kHtsxaA" },
     ];
+
+    const fetchFinanceData = async () => {
+        setFinanceLoading(true);
+        try {
+            const data = await financeApi.get('/transactions');
+            setFinanceTransactions(data || []);
+        } catch (err) {
+            console.error('Error fetching finance data for analytics:', err);
+        } finally {
+            setFinanceLoading(false);
+        }
+    };
 
     const fetchMedia = async () => {
         try {
@@ -202,15 +247,6 @@ const PatronDashboard: React.FC = () => {
         }
     };
 
-    // Filter users
-    const filteredUsers = users.filter(user => {
-        const matchesYos = selectedYos === 'all' || user.yos === selectedYos;
-        const matchesSearch = !searchQuery ||
-            user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.reg?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.course?.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesYos && matchesSearch;
-    });
 
     // PDF export grouped by year of study
     const handleExportPdf = () => {
@@ -332,6 +368,7 @@ const PatronDashboard: React.FC = () => {
     // ── Purple-accented light theme ──
     const P = '#730051';       // primary purple
     const PL = '#8a0062';      // lighter purple
+    const R = '#ef4444';       // red for feedback/alerts
     const PBg = '#faf5f8';     // faint purple tint for backgrounds
     const dk = {
         card: '#ffffff',
@@ -352,99 +389,302 @@ const PatronDashboard: React.FC = () => {
     // ── Section Renderers ──
 
     const renderDashboard = () => (
-        <div className={styles.section} style={sectionStyle}>
-            <h2 className={styles.sectionTitle} style={titleStyle}>Overview</h2>
-            <div className={styles.statsGrid} style={{ gap: '10px' }}>
+        <div className={styles.section} style={{ ...sectionStyle, padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2 className={styles.sectionTitle} style={{ ...titleStyle, marginBottom: 0, border: 'none' }}>Overview & Analytics</h2>
+                {financeLoading && <div style={{ fontSize: '11px', color: P, display: 'flex', alignItems: 'center', gap: '6px' }}><RefreshCw size={12} className="animate-spin" /> Syncing data...</div>}
+            </div>
+
+            {/* Stat Cards */}
+            <div className={styles.statsGrid} style={{ gap: '15px', marginBottom: '30px' }}>
                 {[
                     { val: userCount, label: 'Total Members', bg: `linear-gradient(135deg, ${P}, ${PL})` },
                     { val: Object.keys(usersByMinistry).length, label: 'Ministries', bg: `linear-gradient(135deg, ${PL}, #a0006e)` },
                     { val: Object.keys(usersByEt).length, label: 'ET Groups', bg: `linear-gradient(135deg, #5a0040, ${P})` },
-                    { val: messages.length, label: 'Feedback', bg: `linear-gradient(135deg, #a0006e, #c0007e)` },
+                    { val: messages.length, label: 'Feedback', bg: R },
                 ].map((s, i) => (
-                    <div key={i} className={styles.statCard} style={{ background: s.bg, boxShadow: '0 4px 14px rgba(115,0,81,0.3)' }}>
-                        <h3>{s.val}</h3>
-                        <p>{s.label}</p>
+                    <div key={i} className={styles.statCard} style={{ background: s.bg, boxShadow: '0 8px 16px rgba(115,0,81,0.15)', borderRadius: '12px', padding: '20px' }}>
+                        <h3 style={{ fontSize: '28px', margin: '0 0 5px' }}>{s.val}</h3>
+                        <p style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8, margin: 0 }}>{s.label}</p>
                     </div>
                 ))}
             </div>
 
-            <h3 className={styles.subSectionTitle} style={{ fontSize: '13px', marginTop: '18px', color: '#999', textTransform: 'uppercase', letterSpacing: '1px' }}>Breakdown</h3>
-            <div className={styles.categoryStatsGrid} style={{ gap: '10px', marginTop: '8px' }}>
-                {[
-                    { title: 'By Year of Study', data: Object.entries(usersByYos).sort(([a], [b]) => parseInt(a) - parseInt(b)), fmt: (k: string) => `Year ${k}` },
-                    { title: 'By Ministry', data: Object.entries(usersByMinistry).sort(([, a], [, b]) => b - a), fmt: (k: string) => k || 'Unassigned' },
-                    { title: 'By Evangelistic Team', data: Object.entries(usersByEt).sort(([, a], [, b]) => b - a), fmt: (k: string) => k || 'Unassigned' },
-                ].map((cat, i) => (
-                    <div key={i} className={styles.categoryCard} style={{ padding: '12px', background: '#fafafa', borderColor: '#e0e0e0' }}>
-                        <h4 style={{ fontSize: '12px', marginBottom: '8px', paddingBottom: '6px', color: P, borderBottomColor: '#eee' }}>{cat.title}</h4>
-                        <ul>
-                            {cat.data.map(([k, count]) => (
-                                <li key={k} style={{ color: '#555', borderBottomColor: '#f0f0f0' }}>{cat.fmt(k)}: <strong style={{ color: P }}>{count}</strong></li>
-                            ))}
-                        </ul>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-
-    const renderMembers = () => (
-        <div className={styles.section} style={sectionStyle}>
-            <div className={styles.sectionHeader} style={{ marginBottom: '12px' }}>
-                <h2 className={styles.sectionTitle} style={{ ...titleStyle, margin: 0, padding: 0, border: 'none' }}>All Members</h2>
-                <button className={styles.primaryButton} onClick={handleExportPdf} style={{ background: P, fontSize: '12px', padding: '8px 16px' }}>
-                    Download PDF
-                </button>
+            {/* Professional Analytics Graphs */}
+            <div style={{ padding: '0 0 40px', borderBottom: '1px solid #f0f0f0' }}>
+                <AnalyticsCharts 
+                    users={users} 
+                    byMinistry={usersByMinistry} 
+                    byEt={usersByEt} 
+                    transactions={financeTransactions} 
+                />
             </div>
 
-            <div className={styles.filterBar}>
-                <label htmlFor="yosFilter" style={{ color: dk.textMuted, fontSize: '13px' }}>Year:</label>
-                <select id="yosFilter" value={selectedYos} onChange={(e) => setSelectedYos(e.target.value)}
-                    style={{ ...inputStyle, minWidth: '140px', cursor: 'pointer' }}>
-                    <option value="all">All Years</option>
-                    {Object.keys(usersByYos).sort((a, b) => parseInt(a) - parseInt(b)).map(yos => (
-                        <option key={yos} value={yos}>Year {yos} ({usersByYos[yos]})</option>
+            <div style={{ marginTop: '30px' }}>
+                <h3 className={styles.subSectionTitle} style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '15px' }}>Member Distribution Breakdown</h3>
+                <div className={styles.categoryStatsGrid} style={{ gap: '15px' }}>
+                    {[
+                        { title: 'By Year of Study', data: Object.entries(usersByYos).sort(([a], [b]) => parseInt(a) - parseInt(b)), fmt: (k: string) => `Year ${k}` },
+                        { title: 'By Ministry', data: Object.entries(usersByMinistry).sort(([, a], [, b]) => b - a), fmt: (k: string) => k || 'Unassigned' },
+                        { title: 'By Evangelistic Team', data: Object.entries(usersByEt).sort(([, a], [, b]) => b - a), fmt: (k: string) => k || 'Unassigned' },
+                    ].map((cat, i) => (
+                        <div key={i} className={styles.categoryCard} style={{ padding: '16px', background: '#fff', border: '1px solid #eee', borderRadius: '12px' }}>
+                            <h4 style={{ fontSize: '11px', fontWeight: '800', marginBottom: '12px', color: P, textTransform: 'uppercase' }}>{cat.title}</h4>
+                            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                                {cat.data.map(([k, count]) => (
+                                    <li key={k} style={{ fontSize: '13px', color: '#444', display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f9f9f9' }}>
+                                        <span>{cat.fmt(k)}</span>
+                                        <strong style={{ color: P }}>{count}</strong>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
                     ))}
-                </select>
-                <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-                    <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#555' }} />
-                    <input type="text" placeholder="Search name, reg, course..." value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        style={{ ...inputStyle, paddingLeft: '34px' }}
-                        onFocus={(e) => (e.target.style.borderColor = dk.input.focusBorder)}
-                        onBlur={(e) => (e.target.style.borderColor = dk.input.border)}
-                    />
                 </div>
             </div>
-
-            <p style={{ color: dk.textMuted, fontSize: '12px', marginBottom: '10px' }}>
-                Showing {filteredUsers.length} of {users.length} members
-            </p>
-
-            <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid #e8e8e8' }}>
-                <table className={styles.dataTable} style={{ background: '#fff' }}>
-                    <thead>
-                        <tr>
-                            {['#', 'Name', 'Reg No', 'Course', 'YOS', 'Ministry', 'ET'].map(h => (
-                                <th key={h} style={{ background: P, color: '#fff', borderBottom: `1px solid ${PL}`, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{h}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredUsers.map((user, index) => (
-                            <tr key={index} style={{ borderBottom: '1px solid #f0f0f0' }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background = PBg)}
-                                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}>
-                                {[index + 1, user.username, user.reg, user.course, user.yos, user.ministry, user.et].map((v, ci) => (
-                                    <td key={ci} style={{ color: '#333', borderBottom: '1px solid #f0f0f0', fontSize: '13px' }}>{v || 'N/A'}</td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
         </div>
     );
+
+    const renderMembers = () => {
+        // Combined filter: year + search + section
+        const displayUsers = users.filter(user => {
+            const matchesYos = selectedYos === 'all' || user.yos === selectedYos;
+            const q = searchQuery.toLowerCase();
+            const matchesSearch = !q ||
+                user.username?.toLowerCase().includes(q) ||
+                user.email?.toLowerCase().includes(q) ||
+                user.phone?.includes(searchQuery) ||
+                user.reg?.toLowerCase().includes(q) ||
+                user.course?.toLowerCase().includes(q);
+                
+            const isEtView = activeSection.startsWith('et-');
+            const isMinView = activeSection.startsWith('min-');
+            
+            const activeFilterText = activeSection.slice(activeSection.indexOf('-') + 1);
+
+            const matchEt = isEtView ? parseEts(user.et).includes(activeFilterText) : true;
+            const matchMin = isMinView ? parseMinistries(user.ministry).includes(activeFilterText) : true;
+
+            return matchesYos && matchesSearch && matchEt && matchMin;
+        });
+
+        const sectionHeading = activeSection.startsWith('et-') ? `${activeSection.replace('et-', '')} Team Members` : 
+                             activeSection.startsWith('min-') ? `${activeSection.replace('min-', '')} Ministry Members` : 'All Members';
+
+        return (
+            <>
+                {/* ── Full-size photo lightbox ── */}
+                {showFullSize && (
+                    <div
+                        onClick={() => setShowFullSize(null)}
+                        style={{
+                            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                            zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            backgroundColor: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(15px)',
+                            padding: '20px', cursor: 'zoom-out', animation: 'patronFadeIn 0.3s ease-out',
+                        }}
+                    >
+                        <div
+                            onClick={e => e.stopPropagation()}
+                            style={{
+                                position: 'relative', maxWidth: '95vw', maxHeight: '90vh',
+                                animation: 'patronZoomIn 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                            }}
+                        >
+                            <button
+                                onClick={() => setShowFullSize(null)}
+                                style={{
+                                    position: 'fixed', top: '20px', right: '20px', color: 'white',
+                                    background: P, border: '2px solid white', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    width: '44px', height: '44px', borderRadius: '50%',
+                                    boxShadow: '0 4px 20px rgba(0,0,0,0.5)', zIndex: 100001,
+                                }}
+                            >
+                                <X size={24} />
+                            </button>
+                            <img
+                                src={showFullSize}
+                                alt="Full view"
+                                style={{
+                                    maxWidth: '100%', maxHeight: '85vh', objectFit: 'contain',
+                                    borderRadius: '12px', boxShadow: '0 0 60px rgba(0,0,0,0.9)',
+                                    border: '4px solid white',
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+                <style>{`
+                    @keyframes patronFadeIn { from { opacity:0 } to { opacity:1 } }
+                    @keyframes patronZoomIn { from { transform:scale(0.95);opacity:0 } to { transform:scale(1);opacity:1 } }
+                    .patron-photo-wrap:hover { transform:scale(1.06) !important; box-shadow:0 6px 20px rgba(115,0,81,0.35) !important; }
+                    .patron-photo-wrap:active { transform:scale(0.95) !important; }
+                    .patron-member-card:hover { box-shadow:0 4px 18px rgba(0,0,0,0.10) !important; }
+                `}</style>
+
+                <div className={styles.section} style={sectionStyle}>
+                    {/* Header row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                        <h2 className={styles.sectionTitle} style={{ ...titleStyle, margin: 0, padding: 0, border: 'none' }}>{sectionHeading}</h2>
+                        <button
+                            className={styles.primaryButton}
+                            onClick={handleExportPdf}
+                            style={{ background: P, fontSize: '12px', padding: '8px 16px' }}
+                        >
+                            Download PDF
+                        </button>
+                    </div>
+
+                    {/* Search + Year filter + Refresh */}
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap' }}>
+                        <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+                            <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#888', pointerEvents: 'none' }} />
+                            <input
+                                type="text"
+                                placeholder="Search by name, email, phone, reg, or course..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                style={{ ...inputStyle, paddingLeft: '38px' }}
+                                onFocus={e => (e.target.style.borderColor = P)}
+                                onBlur={e => (e.target.style.borderColor = '#ddd')}
+                            />
+                        </div>
+                        <select
+                            value={selectedYos}
+                            onChange={e => setSelectedYos(e.target.value)}
+                            style={{ ...inputStyle, minWidth: '130px', cursor: 'pointer' }}
+                        >
+                            <option value="all">All Years</option>
+                            {Object.keys(usersByYos).sort((a, b) => parseInt(a) - parseInt(b)).map(yos => (
+                                <option key={yos} value={yos}>Year {yos} ({usersByYos[yos]})</option>
+                            ))}
+                        </select>
+                        <button
+                            onClick={() => fetchUsers(true)}
+                            disabled={membersLoading}
+                            style={{
+                                padding: '10px 14px', border: 'none', borderRadius: '6px',
+                                background: membersLoading ? '#aaa' : '#007bff', color: 'white',
+                                cursor: membersLoading ? 'not-allowed' : 'pointer',
+                                display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600,
+                            }}
+                        >
+                            <RefreshCw size={15} style={{ animation: membersLoading ? 'spin 0.8s linear infinite' : 'none' }} />
+                            Refresh
+                        </button>
+                    </div>
+
+                    {/* Count badge */}
+                    <div style={{
+                        fontSize: '13px', color: '#666', padding: '10px 14px',
+                        background: '#fff3cd', border: '1px solid #ffeaa7', borderRadius: '6px',
+                        marginBottom: '16px',
+                    }}>
+                        📋 <strong>Total Members:</strong> {displayUsers.length}
+                        {(searchQuery || selectedYos !== 'all') && ` (filtered from ${users.length})`}
+                    </div>
+
+                    {/* Card list */}
+                    {membersLoading ? (
+                        <div style={{ textAlign: 'center', padding: '60px 0', color: '#999', fontSize: '14px' }}>
+                            Loading members...
+                        </div>
+                    ) : displayUsers.length === 0 ? (
+                        <div style={{ textAlign: 'center', padding: '60px 0', color: '#999', fontSize: '14px' }}>
+                            {searchQuery || selectedYos !== 'all' ? 'No members match your search.' : 'No members found.'}
+                        </div>
+                    ) : (
+                        <div style={{ maxHeight: '65vh', overflowY: 'auto', paddingRight: '4px' }}>
+                            {displayUsers.map(user => (
+                                <div
+                                    key={user._id || user.reg}
+                                    className="patron-member-card"
+                                    style={{
+                                        border: '1px solid #dee2e6', borderRadius: '10px',
+                                        padding: '16px', marginBottom: '16px',
+                                        backgroundColor: '#f8f9fa',
+                                        boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                                        transition: 'box-shadow 0.2s ease',
+                                    }}
+                                >
+                                    {/* Top row: photo + details */}
+                                    <div style={{ display: 'flex', gap: '16px', marginBottom: '14px', alignItems: 'flex-start' }}>
+
+                                        {/* Profile photo */}
+                                        <div
+                                            className="patron-photo-wrap"
+                                            onClick={() => user.profilePhoto && setShowFullSize(getImageUrl(user.profilePhoto))}
+                                            title={user.profilePhoto ? 'Click to view full size' : ''}
+                                            style={{
+                                                width: '80px', height: '80px', borderRadius: '50%',
+                                                overflow: 'hidden', border: `3px solid ${P}`,
+                                                flexShrink: 0, backgroundColor: '#f0f0f0',
+                                                display: 'flex', justifyContent: 'center', alignItems: 'center',
+                                                cursor: user.profilePhoto ? 'pointer' : 'default',
+                                                boxShadow: '0 4px 12px rgba(115,0,81,0.2)',
+                                                transition: 'transform 0.2s cubic-bezier(0.175,0.885,0.32,1.275), box-shadow 0.2s',
+                                            }}
+                                        >
+                                            {user.profilePhoto ? (
+                                                <img
+                                                    src={getImageUrl(user.profilePhoto)}
+                                                    alt={user.username}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                />
+                                            ) : (
+                                                <User size={36} color={P} />
+                                            )}
+                                        </div>
+
+                                        {/* Name / email / phone / course */}
+                                        <div style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                            gap: '10px', flex: 1, fontSize: '14px',
+                                        }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <User size={15} color={P} />
+                                                <span><strong>Name:</strong> {user.username || 'N/A'}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <Mail size={15} color={P} />
+                                                <span><strong>Email:</strong> {user.email || 'N/A'}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <Phone size={15} color={P} />
+                                                <span><strong>Phone:</strong> {user.phone || 'N/A'}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                <BookOpen size={15} color={P} />
+                                                <span><strong>Course:</strong> {user.course || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Bottom row: REG / Year / ET / Ministry */}
+                                    <div style={{
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                                        gap: '8px', fontSize: '13px', color: '#555',
+                                        paddingTop: '12px', borderTop: '1px solid #dee2e6',
+                                    }}>
+                                        <div><strong>REG:</strong> {user.reg || 'N/A'}</div>
+                                        <div><strong>Year:</strong> {user.yos || 'N/A'}</div>
+                                        <div><strong>ET:</strong> {user.et || 'N/A'}</div>
+                                        <div><strong>Ministry:</strong> {user.ministry || 'N/A'}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </>
+        );
+    };
 
     const renderFeedback = () => (
         <div className={styles.section} style={sectionStyle}>
@@ -638,6 +878,8 @@ const PatronDashboard: React.FC = () => {
         </div>
     );
 
+
+
     const renderActiveSection = () => {
         if (loading) {
             return (
@@ -655,63 +897,30 @@ const PatronDashboard: React.FC = () => {
             );
         }
 
+        if (activeSection.startsWith('et-') || activeSection.startsWith('min-') || activeSection === 'members') {
+            return renderMembers();
+        }
+
         switch (activeSection) {
             case 'dashboard': return renderDashboard();
-            case 'members': return renderMembers();
             case 'feedback': return renderFeedback();
             case 'gallery': return renderGallery();
             case 'settings': return renderSettings();
-            case 'finance': return <FinancePanel isPatron />;
+            case 'finance': 
+            case 'finance-dashboard': return <FinancePanel isPatron initialTab="dashboard" />;
+            case 'finance-transactions': return <FinancePanel isPatron initialTab="transactions" />;
+            case 'finance-requisitions': return <FinancePanel isPatron initialTab="requisitions" />;
+            case 'finance-reports': return <FinancePanel isPatron initialTab="reports" />;
             default: return renderDashboard();
         }
     };
 
     return (
-        <div className={styles.pageWrapper} style={{ background: '#f5f5f5' }}>
-            <header
-                className={styles.adminHeader}
-                style={{
-                    background: 'rgba(115,0,81,0.92)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    borderBottom: '1px solid rgba(255,255,255,0.12)',
-                    height: '52px',
-                    top: '64px',
-                    boxShadow: 'none',
-                }}
-            >
-                <button
-                    className={styles.menuButton}
-                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                    style={{ background: 'rgba(255,255,255,0.08)', color: '#fff', borderRadius: '6px', width: '36px', height: '36px' }}
-                >
-                    {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
-                </button>
-                <h1 className={styles.adminHeaderTitle} style={{
-                    color: '#fff', fontSize: '14px', fontWeight: '700', letterSpacing: '1.5px',
-                    textAlign: 'center', textTransform: 'uppercase',
-                }}>
-                    Patron Dashboard
-                </h1>
-                <button
-                    onClick={handleLogout}
-                    style={{
-                        padding: '6px 16px',
-                        background: 'rgba(255,255,255,0.06)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        borderRadius: '6px',
-                        color: '#aaa',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        fontWeight: '600',
-                        transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#111'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = '#aaa'; }}
-                >
-                    Logout
-                </button>
-            </header>
+        <div className={styles.pageWrapper} style={{
+            background: '#f5f5f5',
+            minHeight: 'calc(100vh - 144px)'
+        }}>
+
 
             <div className={styles.adminLayout} style={{ background: '#f5f5f5' }}>
                 <PatronSidebar
@@ -719,13 +928,19 @@ const PatronDashboard: React.FC = () => {
                     onSectionChange={setActiveSection}
                     isOpen={sidebarOpen}
                     onToggle={() => setSidebarOpen(!sidebarOpen)}
+                    onLogout={handleLogout}
                 />
                 <main className={styles.mainContent} style={{ padding: '16px' }}>
                     {renderActiveSection()}
                 </main>
             </div>
 
-            <footer className={styles.footerWrapper}></footer>
+            <footer style={{
+                textAlign: 'center', padding: '12px 16px', fontSize: '11px', color: '#888',
+                borderTop: '1px solid #e0e0e0', background: '#fafafa'
+            }}>
+                &copy; {new Date().getFullYear()} KSUCU-MC Patron Portal
+            </footer>
         </div>
     );
 };

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Facebook, Instagram, Youtube, Twitter, Mail, Phone, MapPin } from 'lucide-react';
 import cuLogo from '../../assets/cuLogoUAR.png';
 
@@ -21,12 +21,15 @@ const socialLinks = [
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const location = useLocation();
+  const isPatronDashboard = location.pathname.startsWith('/patron');
 
   return (
     <footer className="bg-[#730051] text-white">
       {/* Main Footer Content */}
-      <div className="max-w-6xl mx-auto px-4 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {!isPatronDashboard && (
+        <div className="max-w-6xl mx-auto px-4 py-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 
           {/* Brand Section */}
           <div className="lg:col-span-1">
@@ -122,8 +125,9 @@ const Footer = () => {
               Fellowship of Christian Unions
             </p>
           </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Bottom Bar */}
       <div className="border-t border-purple-400/30">

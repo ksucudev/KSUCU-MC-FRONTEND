@@ -58,8 +58,15 @@ interface FinanceUser {
   createdAt: string;
 }
 
-const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false }) => {
-  const [activeTab, setActiveTab] = useState<FinanceTab>('dashboard');
+const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false, initialTab }) => {
+  const [activeTab, setActiveTab] = useState<FinanceTab>(initialTab || 'dashboard');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
   const [balance, setBalance] = useState<{ total_in: number; total_out: number; balance: number } | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [requisitions, setRequisitions] = useState<Requisition[]>([]);
