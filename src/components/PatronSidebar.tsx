@@ -12,7 +12,8 @@ import {
   ChevronDown,
   ChevronUp,
   Globe,
-  Music
+  Music,
+  Briefcase
 } from 'lucide-react';
 import styles from '../styles/patronSidebar.module.css';
 import cuLogo from '../assets/KSUCU logo updated document.png';
@@ -42,6 +43,7 @@ const manageableItems: MenuItem[] = [
   { id: 'members', label: 'All Members', icon: <Users size={18} /> },
   { id: 'feedback', label: 'Feedback', icon: <MessageSquare size={18} /> },
   { id: 'gallery', label: 'Gallery', icon: <Image size={18} /> },
+  { id: 'assets', label: 'Assets', icon: <Briefcase size={18} /> },
 ];
 
 const financeItems: MenuItem[] = [

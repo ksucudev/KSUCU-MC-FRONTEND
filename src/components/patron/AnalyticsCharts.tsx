@@ -9,6 +9,7 @@ interface AnalyticsChartsProps {
   byMinistry: { [key: string]: number };
   byEt: { [key: string]: number };
   transactions: any[];
+  assets: any[];
 }
 
 const EMPTY_MSG: React.CSSProperties = {
@@ -20,7 +21,7 @@ const EmptyState = ({ label }: { label: string }) => (
   <div style={EMPTY_MSG}>No {label} data yet</div>
 );
 
-const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ users, byMinistry, byEt, transactions }) => {
+const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ users, byMinistry, byEt, transactions, assets }) => {
   const P = '#730051';
   const PL = '#a0006e';
   const P2 = '#c0006e';
@@ -37,24 +38,27 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ users, byMinistry, by
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  const chartH = isMobile ? 180 : 220;
+  const chartH = isMobile ? 180 : 180;
 
-  // 1. Member Growth (Cumulative)
-  const getMemberGrowthData = () => {
-    const dates: { [key: string]: number } = {};
+  // 1. Member Distribution by Year of Study
+  const getMemberYosData = () => {
+    const yosMap: { [key: string]: number } = {
+      '1st Year': 0, '2nd Year': 0, '3rd Year': 0, '4th Year': 0,
+      '5th Year': 0, '6th Year': 0, 'Associates': 0
+    };
+    
     users.forEach(u => {
-      const date = u.createdAt
-        ? new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
-        : 'Initial';
-      dates[date] = (dates[date] || 0) + 1;
+      const y = String(u.yos).toLowerCase();
+      if (y === '1') yosMap['1st Year']++;
+      else if (y === '2') yosMap['2nd Year']++;
+      else if (y === '3') yosMap['3rd Year']++;
+      else if (y === '4') yosMap['4th Year']++;
+      else if (y === '5') yosMap['5th Year']++;
+      else if (y === '6') yosMap['6th Year']++;
+      else if (y.includes('associate') || y === 'alumni') yosMap['Associates']++;
     });
-    const sorted = Object.entries(dates).sort((a, b) => {
-      if (a[0] === 'Initial') return -1;
-      if (b[0] === 'Initial') return 1;
-      return new Date(a[0]).getTime() - new Date(b[0]).getTime();
-    });
-    let cum = 0;
-    return sorted.map(([date, count]) => { cum += count; return { name: date, Members: cum }; });
+
+    return Object.entries(yosMap).map(([name, count]) => ({ name, Members: count }));
   };
 
   // 2. Finance Categories (Tithe, Offering, Thanksgiving)
@@ -95,128 +99,161 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ users, byMinistry, by
   const ET_COLORS = [P, PL, P2, P3, '#5a0040'];
   const MIN_COLORS = ['#730051','#8a0062','#a0006e','#b5007a','#c90086','#de0092','#f2009e'];
 
-  const memberData = getMemberGrowthData();
+  const memberData = getMemberYosData();
   const financeData = getFinanceDetailData();
   const cashData = getCashFlowData();
+
+  // 6. Asset Worth by Docket
+  const getAssetDocketData = () => {
+    const dockets: { [key: string]: number } = {};
+    (assets || []).forEach(a => {
+      const d = a.docket || 'Other';
+      dockets[d] = (dockets[d] || 0) + (a.valuation || 0);
+    });
+    return Object.entries(dockets)
+      .map(([name, value]) => ({ name: name.length > 10 ? name.slice(0, 10) + '…' : name, value }))
+      .sort((a, b) => b.value - a.value);
+  };
+
+  const assetDocketData = getAssetDocketData();
 
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
-      gap: isMobile ? '14px' : '20px',
+      gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+      gap: isMobile ? '14px' : '16px',
       marginTop: '16px',
     }}>
 
-      {/* 1. Member Growth */}
+      {/* 1. Member Distribution by Year */}
       <div style={card}>
-        <h4 style={title}>Member Growth Trend</h4>
-        <div style={{ height: chartH }}>
-          {memberData.length === 0 ? <EmptyState label="member growth" /> :
+        <h4 style={title}>Member Distribution</h4>
+        <div style={{ height: chartH, position: 'relative' }}>
+          {users.length === 0 && <div style={emptyOverlay}>No data yet</div>}
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={memberData} margin={{ top: 4, right: 12, left: -10, bottom: 0 }}>
+            <BarChart data={memberData} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey="name" fontSize={9} tickLine={false} axisLine={false} />
-              <YAxis fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip contentStyle={tip} />
-              <Line type="monotone" dataKey="Members" stroke={P} strokeWidth={2.5}
-                dot={{ r: 3, fill: P }} activeDot={{ r: 5 }} />
-            </LineChart>
-          </ResponsiveContainer>}
+              <XAxis dataKey="name" fontSize={7} tickLine={{ stroke: '#ccc' }} axisLine={{ stroke: '#ccc' }} angle={-20} textAnchor="end" interval={0} label={{ value: 'Year of Study', position: 'insideBottom', offset: -15, fontSize: 9, fontWeight: 600 }} />
+              <YAxis fontSize={8} tickLine={{ stroke: '#ccc' }} axisLine={{ stroke: '#ccc' }} allowDecimals={false} label={{ value: 'No. of People', angle: -90, position: 'insideLeft', offset: 25, fontSize: 9, fontWeight: 600 }} />
+              <Tooltip cursor={{ fill: 'rgba(115,0,81,0.05)' }} contentStyle={tip} />
+              <Bar dataKey="Members" radius={[4, 4, 0, 0]} barSize={16}>
+                {memberData.map((_, i) => <Cell key={i} fill={MIN_COLORS[i % MIN_COLORS.length]} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       {/* 2. Income Categories */}
       <div style={card}>
-        <h4 style={title}>Income Categories vs Time</h4>
-        <div style={{ height: chartH }}>
-          {financeData.length === 0 ? <EmptyState label="income category" /> :
+        <h4 style={title}>Income Categories</h4>
+        <div style={{ height: chartH, position: 'relative' }}>
+          {financeData.length === 0 && <div style={emptyOverlay}>No data yet</div>}
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={financeData} margin={{ top: 4, right: 12, left: -10, bottom: 0 }}>
-              <defs>
-                <linearGradient id="gTithe" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={P} stopOpacity={0.15}/><stop offset="95%" stopColor={P} stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="gOff" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={G} stopOpacity={0.15}/><stop offset="95%" stopColor={G} stopOpacity={0}/>
-                </linearGradient>
-                <linearGradient id="gThank" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={AMBER} stopOpacity={0.15}/><stop offset="95%" stopColor={AMBER} stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
-              <YAxis fontSize={9} axisLine={false} tickLine={false} />
+            <BarChart data={financeData.length > 0 ? financeData : [{name:'', Tithe:0, Offering:0, Thanksgiving:0}]} margin={{ top: 10, right: 10, left: -15, bottom: 25 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis dataKey="name" fontSize={8} axisLine={{ stroke: '#ccc' }} tickLine={{ stroke: '#ccc' }} label={{ value: 'Timeline', position: 'insideBottom', offset: -12, fontSize: 9, fontWeight: 600 }} />
+              <YAxis fontSize={8} axisLine={{ stroke: '#ccc' }} tickLine={{ stroke: '#ccc' }} tickFormatter={(v) => v >= 1000 ? `${v/1000}k` : v} label={{ value: 'Amount (KES)', angle: -90, position: 'insideLeft', offset: 12, fontSize: 9, fontWeight: 600 }} />
               <Tooltip contentStyle={tip} formatter={(v: any) => `KES ${Number(v).toLocaleString()}`} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }} />
-              <Area type="monotone" dataKey="Tithe" stroke={P} fill="url(#gTithe)" strokeWidth={2} />
-              <Area type="monotone" dataKey="Offering" stroke={G} fill="url(#gOff)" strokeWidth={2} />
-              <Area type="monotone" dataKey="Thanksgiving" stroke={AMBER} fill="url(#gThank)" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>}
+              <Legend iconType="circle" iconSize={6} wrapperStyle={{ fontSize: '8px', paddingTop: '10px' }} />
+              <Bar dataKey="Tithe" fill={P} radius={[2, 2, 0, 0]} barSize={8} />
+              <Bar dataKey="Offering" fill={G} radius={[2, 2, 0, 0]} barSize={8} />
+              <Bar dataKey="Thanksgiving" fill={AMBER} radius={[2, 2, 0, 0]} barSize={8} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 3. Cash Flow */}
+      {/* 3. Financial Flow */}
       <div style={card}>
-        <h4 style={title}>General Cash Flow (In vs Out)</h4>
-        <div style={{ height: chartH }}>
-          {cashData.length === 0 ? <EmptyState label="cash flow" /> :
+        <h4 style={title}>Financial Flow</h4>
+        <div style={{ height: chartH, position: 'relative' }}>
+          {cashData.length === 0 && <div style={emptyOverlay}>No data yet</div>}
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={cashData} margin={{ top: 4, right: 12, left: -10, bottom: 0 }}>
+            <BarChart data={cashData.length > 0 ? cashData : [{name:'', In:0, Out:0}]} margin={{ top: 10, right: 10, left: -15, bottom: 25 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
-              <YAxis fontSize={9} axisLine={false} tickLine={false} />
+              <XAxis dataKey="name" fontSize={8} axisLine={{ stroke: '#ccc' }} tickLine={{ stroke: '#ccc' }} label={{ value: 'Timeline', position: 'insideBottom', offset: -12, fontSize: 9, fontWeight: 600 }} />
+              <YAxis fontSize={8} axisLine={{ stroke: '#ccc' }} tickLine={{ stroke: '#ccc' }} tickFormatter={(v) => v >= 1000 ? `${v/1000}k` : v} label={{ value: 'Value (KES)', angle: -90, position: 'insideLeft', offset: 10, fontSize: 9, fontWeight: 600 }} />
               <Tooltip contentStyle={tip} formatter={(v: any) => `KES ${Number(v).toLocaleString()}`} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }} />
-              <Line type="monotone" dataKey="In" name="Income" stroke={G} strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="Out" name="Expenses" stroke={R} strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>}
+              <Legend iconType="circle" iconSize={6} wrapperStyle={{ fontSize: '8px', paddingTop: '10px' }} />
+              <Bar dataKey="In" name="Total Income" fill={G} radius={[2, 2, 0, 0]} barSize={10} />
+              <Bar dataKey="Out" name="Total Expenses" fill={R} radius={[2, 2, 0, 0]} barSize={10} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       {/* 4. ET Distribution */}
       <div style={card}>
-        <h4 style={title}>Evangelistic Teams Distribution</h4>
-        <div style={{ height: Math.max(chartH, etData.length * 36 + 20) }}>
-          {etData.length === 0 ? <EmptyState label="ET" /> :
+        <h4 style={title}>ET Membership</h4>
+        <div style={{ height: chartH, position: 'relative' }}>
+          {etData.length === 0 && <div style={emptyOverlay}>No data yet</div>}
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={etData} layout="vertical" margin={{ top: 4, right: 30, left: 0, bottom: 0 }}>
-              <XAxis type="number" fontSize={9} hide />
-              <YAxis dataKey="name" type="category" fontSize={10} width={isMobile ? 65 : 80}
-                axisLine={false} tickLine={false} />
+            <BarChart data={etData.length > 0 ? etData : [{name:'', value:0}]} margin={{ top: 10, right: 5, left: -20, bottom: 35 }}>
+              <XAxis dataKey="name" fontSize={7} tickLine={{ stroke: '#ccc' }} axisLine={{ stroke: '#ccc' }} interval={0} angle={-15} textAnchor="end" label={{ value: 'Evangelistic Teams', position: 'insideBottom', offset: -20, fontSize: 9, fontWeight: 600 }} />
+              <YAxis fontSize={8} tickLine={{ stroke: '#ccc' }} axisLine={{ stroke: '#ccc' }} allowDecimals={false} label={{ value: 'People Count', angle: -90, position: 'insideLeft', offset: 25, fontSize: 9, fontWeight: 600 }} />
               <Tooltip cursor={{ fill: 'rgba(115,0,81,0.05)' }} contentStyle={tip} />
-              <Bar dataKey="value" name="Members" radius={[0, 5, 5, 0]} barSize={isMobile ? 14 : 18}
-                label={{ position: 'right', fontSize: 10, fill: '#555' }}>
+              <Bar dataKey="value" name="Members" radius={[4, 4, 0, 0]} barSize={14}>
                 {etData.map((_, i) => <Cell key={i} fill={ET_COLORS[i % ET_COLORS.length]} />)}
               </Bar>
             </BarChart>
-          </ResponsiveContainer>}
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 5. Ministry Distribution — FULL WIDTH */}
-      <div style={{ ...card, gridColumn: isMobile ? '1' : '1 / -1' }}>
-        <h4 style={title}>Members per Ministry</h4>
-        <div style={{ height: Math.max(chartH, minData.length * 32 + 20) }}>
-          {minData.length === 0 ? <EmptyState label="ministry" /> :
+      {/* 5. Ministry Distribution */}
+      <div style={card}>
+        <h4 style={title}>Ministry Enrollment</h4>
+        <div style={{ height: chartH, position: 'relative' }}>
+          {minData.length === 0 && <div style={emptyOverlay}>No data yet</div>}
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={minData} layout="vertical" margin={{ top: 4, right: 50, left: 0, bottom: 0 }}>
-              <XAxis type="number" fontSize={9} hide />
-              <YAxis dataKey="name" type="category" fontSize={isMobile ? 9 : 10}
-                width={isMobile ? 100 : 140} axisLine={false} tickLine={false} />
+            <BarChart data={minData.length > 0 ? minData : [{name:'', value:0}]} margin={{ top: 10, right: 5, left: -20, bottom: 35 }}>
+              <XAxis dataKey="name" fontSize={7} tickLine={{ stroke: '#ccc' }} axisLine={{ stroke: '#ccc' }} interval={0} angle={-25} textAnchor="end" label={{ value: 'Ministries', position: 'insideBottom', offset: -20, fontSize: 9, fontWeight: 600 }} />
+              <YAxis fontSize={8} tickLine={{ stroke: '#ccc' }} axisLine={{ stroke: '#ccc' }} allowDecimals={false} label={{ value: 'Student Count', angle: -90, position: 'insideLeft', offset: 25, fontSize: 9, fontWeight: 600 }} />
               <Tooltip cursor={{ fill: 'rgba(115,0,81,0.05)' }} contentStyle={tip}
-                formatter={(v: any) => [`${v} member${v !== 1 ? 's' : ''}`, 'Count']} />
-              <Bar dataKey="value" name="Members" radius={[0, 5, 5, 0]} barSize={isMobile ? 12 : 18}
-                label={{ position: 'right', fontSize: 10, fill: '#555' }}>
+                formatter={(v: any) => [`${v} student${v !== 1 ? 's' : ''}`, 'Total Registered']} />
+              <Bar dataKey="value" name="Students" radius={[4, 4, 0, 0]} barSize={12}>
                 {minData.map((_, i) => <Cell key={i} fill={MIN_COLORS[i % MIN_COLORS.length]} />)}
               </Bar>
             </BarChart>
-          </ResponsiveContainer>}
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* 6. Asset Worth by Docket */}
+      <div style={card}>
+        <h4 style={title}>Asset Valuation</h4>
+        <div style={{ height: chartH, position: 'relative' }}>
+          {assetDocketData.length === 0 && <div style={emptyOverlay}>No data yet</div>}
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={assetDocketData.length > 0 ? assetDocketData : [{name:'', value:0}]} margin={{ top: 10, right: 5, left: -15, bottom: 40 }}>
+              <XAxis dataKey="name" fontSize={7} tickLine={{ stroke: '#ccc' }} axisLine={{ stroke: '#ccc' }} interval={0} angle={-25} textAnchor="end" label={{ value: 'Leadership Dockets', position: 'insideBottom', offset: -25, fontSize: 9, fontWeight: 600 }} />
+              <YAxis fontSize={8} axisLine={{ stroke: '#ccc' }} tickLine={{ stroke: '#ccc' }} tickFormatter={(v) => v >= 1000 ? `KES ${v/1000}k` : v} label={{ value: 'Asset Worth', angle: -90, position: 'insideLeft', offset: 15, fontSize: 9, fontWeight: 600 }} />
+              <Tooltip cursor={{ fill: 'rgba(115,0,81,0.05)' }} contentStyle={tip}
+                formatter={(v: any) => [`KES ${Number(v).toLocaleString()}`, 'Total Worth']} />
+              <Bar dataKey="value" name="Worth" radius={[4, 4, 0, 0]} barSize={14}>
+                {assetDocketData.map((_, i) => <Cell key={i} fill={MIN_COLORS[i % MIN_COLORS.length]} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
     </div>
   );
+};
+
+const emptyOverlay: React.CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  zIndex: 10,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'rgba(255,255,255,0.7)',
+  color: '#999',
+  fontSize: '11px',
+  fontStyle: 'italic',
 };
 
 const card: React.CSSProperties = {

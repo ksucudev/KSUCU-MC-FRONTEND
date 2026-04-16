@@ -4,14 +4,16 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import styles from '../styles/superAdmin.module.css';
-import { Menu, X, Search, RefreshCw, User, Mail, Phone, BookOpen } from 'lucide-react';
+import { Menu, X, Search, RefreshCw, User, Mail, Phone, BookOpen, Wallet, Gem, ShieldCheck, Layers, Users, MessageSquare, Bell } from 'lucide-react';
 import { getApiUrl, getImageUrl } from '../config/environment';
 import letterhead from '../assets/letterhead.png';
 import PatronSidebar, { PatronSection } from '../components/PatronSidebar';
 import { financeApi } from '../services/financeApi';
 import FinancePanel from '../components/finance/FinancePanel';
 import AnalyticsCharts from '../components/patron/AnalyticsCharts';
+import PatronAssets from '../components/patron/PatronAssets';
 import { ET_LIST, MINISTRY_LIST, parseEts, parseMinistries } from '../utils/constants';
+import cuLogo from '../assets/cuLogoUAR.png';
 
 interface User {
     _id: string;
@@ -61,6 +63,16 @@ interface MediaItem {
     imageUrl?: string;
 }
 
+interface Notification {
+    id: string;
+    title: string;
+    description: string;
+    type: 'asset' | 'finance' | 'feedback' | 'user';
+    timestamp: Date;
+    read: boolean;
+    targetSection: PatronSection;
+}
+
 const PatronDashboard: React.FC = () => {
     const navigate = useNavigate();
 
@@ -76,6 +88,11 @@ const PatronDashboard: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [financeLoading, setFinanceLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [totalAssetValue, setTotalAssetValue] = useState<number>(0);
+    const [accountBalance, setAccountBalance] = useState<number>(0);
+    const [studentsInMinistries, setStudentsInMinistries] = useState<number>(0);
+    const [studentsInEts, setStudentsInEts] = useState<number>(0);
+    const [assets, setAssets] = useState<any[]>([]);
 
     // UI state
     const [activeSection, setActiveSection] = useState<PatronSection>('dashboard');
@@ -94,6 +111,17 @@ const PatronDashboard: React.FC = () => {
     const [passwordSuccess, setPasswordSuccess] = useState('');
     const [passwordError, setPasswordError] = useState('');
 
+    // New Enhancement states
+    const [showWelcome, setShowWelcome] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+    const lastCounts = React.useRef({
+        users: 0,
+        messages: 0,
+        assets: 0,
+        transactions: 0
+    });
+
     useEffect(() => {
         verifyAndFetchData();
         
@@ -102,10 +130,35 @@ const PatronDashboard: React.FC = () => {
         return () => window.removeEventListener('togglePatronSidebar', handleToggleSidebar);
     }, []);
 
+    const addNotification = (title: string, description: string, type: Notification['type'], target: PatronSection) => {
+        const newNotif: Notification = {
+            id: Math.random().toString(36).substr(2, 9),
+            title,
+            description,
+            type,
+            timestamp: new Date(),
+            read: false,
+            targetSection: target
+        };
+        setNotifications(prev => [newNotif, ...prev]);
+    };
+
     const verifyAndFetchData = async () => {
         try {
             await axios.get(getApiUrl('patronVerify'), { withCredentials: true });
+            
+            // Check for welcome session
+            if (!sessionStorage.getItem('patron_welcomed')) {
+                setShowWelcome(true);
+                sessionStorage.setItem('patron_welcomed', 'true');
+                setTimeout(() => setShowWelcome(false), 3000);
+            }
+
             await Promise.all([fetchUsers(), fetchMessages(), fetchMedia(), fetchFinanceData()]);
+            
+            // Set initial counts after first full fetch to avoid "new login" spam notifications
+            // However, the user wants to see "what has changed", so if we want to show things 
+            // since last login, we should keep track in localStorage instead of just session.
         } catch (err: any) {
             if (err.response?.status === 401 || err.response?.status === 403) {
                 navigate('/signIn');
@@ -146,12 +199,46 @@ const PatronDashboard: React.FC = () => {
         setUsersByYos(groupedByYos);
         setUsersByMinistry(groupedByMinistry);
         setUsersByEt(groupedByEt);
+
+        // Calculate participation
+        const inMin = userData.filter((u: User) => parseMinistries(u.ministry).length > 0).length;
+        const inEt = userData.filter((u: User) => parseEts(u.et).length > 0).length;
+        setStudentsInMinistries(inMin);
+        setStudentsInEts(inEt);
+
+        // Track new students
+        if (lastCounts.current.users > 0 && userData.length > lastCounts.current.users) {
+            const newCount = userData.length - lastCounts.current.users;
+            const latest = userData[userData.length - 1];
+            addNotification(
+                'New Student Registration',
+                `${newCount} new Student(s) joined. Latest: ${latest.username} (${latest.yos})`,
+                'user',
+                'members'
+            );
+        }
+        lastCounts.current.users = userData.length;
+
         if (showLoader) setMembersLoading(false);
     };
 
     const fetchMessages = async () => {
         const response = await axios.get(getApiUrl('patronMessages'), { withCredentials: true });
-        setMessages(response.data);
+        const msgs = response.data;
+        
+        // Track new feedback
+        if (lastCounts.current.messages > 0 && msgs.length > lastCounts.current.messages) {
+            const newCount = msgs.length - lastCounts.current.messages;
+            const latest = msgs[msgs.length - 1];
+            addNotification(
+                'New Member Feedback',
+                `${newCount} new feedback message(s). Latest: "${latest.subject}"`,
+                'feedback',
+                'feedback'
+            );
+        }
+        lastCounts.current.messages = msgs.length;
+        setMessages(msgs);
     };
 
     const defaultMediaEvents: MediaItem[] = [
@@ -174,8 +261,50 @@ const PatronDashboard: React.FC = () => {
     const fetchFinanceData = async () => {
         setFinanceLoading(true);
         try {
-            const data = await financeApi.get('/transactions');
-            setFinanceTransactions(data || []);
+            // Fetch Transactions & Assets in parallel
+            const [txs, assets] = await Promise.all([
+                financeApi.get('/transactions'),
+                financeApi.get('/assets')
+            ]);
+
+            setFinanceTransactions(txs || []);
+            setAssets(assets || []);
+            
+            // Calculate Balance
+            const income = (txs || []).filter((t: any) => t.type === 'cash_in').reduce((acc: number, t: any) => acc + t.amount, 0);
+            const expense = (txs || []).filter((t: any) => t.type === 'cash_out').reduce((acc: number, t: any) => acc + t.amount, 0);
+            setAccountBalance(income - expense);
+
+            // Calculate Asset Total
+            const assetTotal = (assets || []).reduce((acc: number, a: any) => acc + (a.valuation || 0), 0);
+            setTotalAssetValue(assetTotal);
+
+            // Track new assets
+            if (lastCounts.current.assets > 0 && (assets || []).length > lastCounts.current.assets) {
+                const newCount = (assets || []).length - lastCounts.current.assets;
+                const latest = assets[assets.length - 1];
+                addNotification(
+                    'New Asset Recorded',
+                    `${newCount} new asset(s) added. Latest: ${latest.name} (${formatCurrencyShort(latest.valuation || 0)})`,
+                    'asset',
+                    'assets'
+                );
+            }
+            lastCounts.current.assets = (assets || []).length;
+
+            // Track new transactions
+            if (lastCounts.current.transactions > 0 && (txs || []).length > lastCounts.current.transactions) {
+                const newCount = (txs || []).length - lastCounts.current.transactions;
+                const latest = txs[txs.length - 1];
+                addNotification(
+                    'New Financial Entry',
+                    `${newCount} new transaction(s) recorded. Latest: ${latest.type.replace('_', ' ')} of ${formatCurrencyShort(latest.amount)}`,
+                    'finance',
+                    'finance-transactions'
+                );
+            }
+            lastCounts.current.transactions = (txs || []).length;
+
         } catch (err) {
             console.error('Error fetching finance data for analytics:', err);
         } finally {
@@ -206,6 +335,7 @@ const PatronDashboard: React.FC = () => {
                 method: 'POST',
                 credentials: 'include'
             });
+            sessionStorage.removeItem('patron_welcomed');
             navigate('/');
         } catch (error) {
             console.error('Error logging out:', error);
@@ -379,6 +509,14 @@ const PatronDashboard: React.FC = () => {
         divider: '#eee',
         input: { bg: '#fff', border: '#ddd', focusBorder: P, text: '#333' },
     };
+    const formatCurrencyShort = (amount: number) => {
+        return new Intl.NumberFormat('en-KE', {
+            style: 'currency',
+            currency: 'KES',
+            maximumFractionDigits: 0
+        }).format(amount);
+    };
+
     const sectionStyle: React.CSSProperties = { padding: '16px', background: '#fff', border: `1px solid ${dk.cardBorder}`, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' };
     const titleStyle: React.CSSProperties = { borderBottomColor: P, fontSize: '16px', marginBottom: '14px', paddingBottom: '10px', color: '#222' };
     const inputStyle: React.CSSProperties = {
@@ -388,24 +526,190 @@ const PatronDashboard: React.FC = () => {
 
     // ── Section Renderers ──
 
+    // ── Helper UI Components ──
+    const WelcomeSplash = () => (
+        <div style={{
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            zIndex: 1000000, background: 'linear-gradient(135deg, #730051 0%, #4a0034 100%)',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', textAlign: 'center', animation: 'fadeIn 0.5s ease'
+        }}>
+            <div style={{ padding: '40px', background: 'rgba(255,255,255,0.1)', borderRadius: '24px', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                <div style={{ marginBottom: '20px' }}>
+                    <img src={cuLogo} alt="Logo" style={{ width: '100px', height: '100px', borderRadius: '50%', border: '4px solid #fff', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }} />
+                </div>
+                <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px', letterSpacing: '-0.5px' }}>Welcome KSUCU-MC Patron</h1>
+                <h2 style={{ fontSize: '24px', fontWeight: '400', opacity: 0.9 }}>Dr Rhoda Auni</h2>
+                <div style={{ marginTop: '24px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    {[0, 1, 2].map(i => (
+                        <div key={i} style={{ width: '8px', height: '8px', background: '#fff', borderRadius: '50%', animation: `pulse 1.5s infinite ${i * 0.2}s` }} />
+                    ))}
+                </div>
+            </div>
+            <style>{`
+                @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                @keyframes pulse { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+            `}</style>
+        </div>
+    );
+
+    const NotificationMenu = () => (
+        <div style={{
+            position: 'absolute', top: '100%', right: 0, width: '320px', 
+            maxHeight: '400px', background: '#fff', borderRadius: '12px', 
+            boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid #eee', 
+            zIndex: 1000, overflowY: 'auto', marginTop: '10px',
+            animation: 'patronFadeIn 0.2s ease'
+        }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: '700', fontSize: '13px', color: '#333' }}>Notifications ({notifications.filter(n => !n.read).length})</span>
+                <button 
+                    onClick={() => setNotifications([])} 
+                    style={{ fontSize: '10px', color: P, background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600' }}
+                >
+                    Clear All
+                </button>
+            </div>
+            <div style={{ padding: '8px' }}>
+                {notifications.length === 0 ? (
+                    <div style={{ padding: '20px', textAlign: 'center', color: '#888', fontSize: '12px' }}>No new updates</div>
+                ) : (
+                    notifications.map(n => (
+                        <div 
+                            key={n.id} 
+                            onClick={() => {
+                                setActiveSection(n.targetSection);
+                                setShowNotifDropdown(false);
+                                setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, read: true } : notif));
+                            }}
+                            style={{ 
+                                padding: '12px', borderRadius: '8px', marginBottom: '4px',
+                                background: n.read ? 'transparent' : '#faf5f8',
+                                cursor: 'pointer', border: '1px solid transparent',
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.borderColor = P}
+                            onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                <span style={{ fontWeight: '700', fontSize: '12px', color: P }}>{n.title}</span>
+                                <span style={{ fontSize: '9px', color: '#999' }}>{n.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <p style={{ margin: 0, fontSize: '11px', color: '#555', lineHeight: '1.4' }}>{n.description}</p>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+
+    const DashboardControls = () => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative' }}>
+            <button 
+                onClick={() => verifyAndFetchData()} 
+                style={{ 
+                    background: '#f8f9fa', border: '1px solid #eee', borderRadius: '8px', 
+                    padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                    color: '#555', transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#eee'; e.currentTarget.style.color = P; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#f8f9fa'; e.currentTarget.style.color = '#555'; }}
+                title="Refresh All Data"
+            >
+                <RefreshCw size={16} className={financeLoading ? 'animate-spin' : ''} />
+            </button>
+            
+            <div style={{ position: 'relative' }}>
+                <button 
+                    onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                    style={{ 
+                        background: '#f8f9fa', border: '1px solid #eee', borderRadius: '8px', 
+                        padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                        color: showNotifDropdown ? P : '#555', transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#eee'; e.currentTarget.style.color = P; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#f8f9fa'; e.currentTarget.style.color = showNotifDropdown ? P : '#555'; }}
+                    title="Notifications"
+                >
+                    <Bell size={16} />
+                    {notifications.filter(n => !n.read).length > 0 && (
+                        <span style={{ 
+                            position: 'absolute', top: '-4px', right: '-4px', 
+                            background: R, color: '#fff', fontSize: '8px', 
+                            padding: '2px 5px', borderRadius: '10px', 
+                            fontWeight: '800', border: '2px solid #fff' 
+                        }}>
+                            {notifications.filter(n => !n.read).length}
+                        </span>
+                    )}
+                </button>
+                {showNotifDropdown && <NotificationMenu />}
+            </div>
+        </div>
+    );
+
     const renderDashboard = () => (
-        <div className={styles.section} style={{ ...sectionStyle, padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 className={styles.sectionTitle} style={{ ...titleStyle, marginBottom: 0, border: 'none' }}>Overview & Analytics</h2>
-                {financeLoading && <div style={{ fontSize: '11px', color: P, display: 'flex', alignItems: 'center', gap: '6px' }}><RefreshCw size={12} className="animate-spin" /> Syncing data...</div>}
+        <div className={styles.section} style={{ ...sectionStyle, padding: '0 24px 24px' }}>
+            <div style={{ 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 100, 
+                background: '#fff', 
+                padding: '24px 0 16px', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: '20px',
+                borderBottom: '1px solid #f0f0f0' 
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h2 className={styles.sectionTitle} style={{ ...titleStyle, marginBottom: 0, border: 'none' }}>Overview & Analytics</h2>
+                    {financeLoading && <div style={{ fontSize: '11px', color: P, display: 'flex', alignItems: 'center', gap: '6px' }}><RefreshCw size={12} className="animate-spin" /> Syncing data...</div>}
+                </div>
+                
+                <DashboardControls />
             </div>
 
-            {/* Stat Cards */}
-            <div className={styles.statsGrid} style={{ gap: '15px', marginBottom: '30px' }}>
+            {/* 7-Column Stat Cards Row */}
+            <div style={{ 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', 
+                gap: '10px', 
+                marginBottom: '30px' 
+            }}>
                 {[
-                    { val: userCount, label: 'Total Members', bg: `linear-gradient(135deg, ${P}, ${PL})` },
-                    { val: Object.keys(usersByMinistry).length, label: 'Ministries', bg: `linear-gradient(135deg, ${PL}, #a0006e)` },
-                    { val: Object.keys(usersByEt).length, label: 'ET Groups', bg: `linear-gradient(135deg, #5a0040, ${P})` },
-                    { val: messages.length, label: 'Feedback', bg: R },
+                    { val: userCount, label: 'KSUCU Members', icon: <Users size={16} />, bg: `linear-gradient(135deg, ${P}, ${PL})` },
+                    { val: studentsInMinistries, label: 'In Ministries', sub: `${Object.keys(usersByMinistry).length} Types`, icon: <ShieldCheck size={16} />, bg: `linear-gradient(135deg, #0066cc, #004499)` },
+                    { val: studentsInEts, label: 'In ET Groups', sub: `${Object.keys(usersByEt).length} Teams`, icon: <Layers size={16} />, bg: `linear-gradient(135deg, #10b981, #059669)` },
+                    { val: formatCurrencyShort(totalAssetValue), label: 'Total Assets', icon: <Gem size={16} />, bg: `linear-gradient(135deg, #f59e0b, #d97706)` },
+                    { val: formatCurrencyShort(accountBalance), label: 'In Account', icon: <Wallet size={16} />, bg: `linear-gradient(135deg, #4f46e5, #3730a3)` },
+                    { val: formatCurrencyShort(totalAssetValue + accountBalance), label: 'Net Worth', icon: <RefreshCw size={16} />, bg: `linear-gradient(135deg, #7c3aed, #5b21b6)` },
+                    { val: messages.length, label: 'Feedback', icon: <MessageSquare size={16} />, bg: R },
                 ].map((s, i) => (
-                    <div key={i} className={styles.statCard} style={{ background: s.bg, boxShadow: '0 8px 16px rgba(115,0,81,0.15)', borderRadius: '12px', padding: '20px' }}>
-                        <h3 style={{ fontSize: '28px', margin: '0 0 5px' }}>{s.val}</h3>
-                        <p style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8, margin: 0 }}>{s.label}</p>
+                    <div key={i} style={{ 
+                        background: s.bg, 
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)', 
+                        borderRadius: '10px', 
+                        padding: '14px',
+                        color: 'white',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        transition: 'transform 0.2s',
+                        cursor: 'default',
+                        minHeight: '100px'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', opacity: 0.9 }}>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '5px', borderRadius: '6px' }}>
+                                {s.icon}
+                            </div>
+                        </div>
+                        <h3 style={{ fontSize: '18px', margin: '0 0 2px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.val}</h3>
+                        <p style={{ fontSize: '9px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', margin: 0, opacity: 0.9 }}>{s.label}</p>
+                        {('sub' in s) && <p style={{ fontSize: '8px', margin: '1px 0 0', opacity: 0.7 }}>{s.sub}</p>}
                     </div>
                 ))}
             </div>
@@ -417,6 +721,7 @@ const PatronDashboard: React.FC = () => {
                     byMinistry={usersByMinistry} 
                     byEt={usersByEt} 
                     transactions={financeTransactions} 
+                    assets={assets}
                 />
             </div>
 
@@ -525,17 +830,39 @@ const PatronDashboard: React.FC = () => {
                     .patron-member-card:hover { box-shadow:0 4px 18px rgba(0,0,0,0.10) !important; }
                 `}</style>
 
-                <div className={styles.section} style={sectionStyle}>
-                    {/* Header row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                <div className={styles.section} style={{ ...sectionStyle, padding: '0 16px 16px' }}>
+                    {/* Sticky Header row */}
+                    <div style={{ 
+                        position: 'sticky', 
+                        top: 0, 
+                        zIndex: 100, 
+                        background: '#fff', 
+                        padding: '16px 0 12px', 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center', 
+                        marginBottom: '14px', 
+                        flexWrap: 'wrap', 
+                        gap: '10px',
+                        borderBottom: '1px solid #f0f0f0'
+                    }}>
                         <h2 className={styles.sectionTitle} style={{ ...titleStyle, margin: 0, padding: 0, border: 'none' }}>{sectionHeading}</h2>
-                        <button
-                            className={styles.primaryButton}
-                            onClick={handleExportPdf}
-                            style={{ background: P, fontSize: '12px', padding: '8px 16px' }}
-                        >
-                            Download PDF
-                        </button>
+                        
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <DashboardControls />
+                            <button
+                                className={styles.primaryButton}
+                                onClick={() => handleExportPdf()}
+                                disabled={membersLoading}
+                                style={{ 
+                                    background: P, color: '#fff', border: 'none', borderRadius: '6px', 
+                                    padding: '8px 16px', fontSize: '11px', fontWeight: '600', cursor: 'pointer',
+                                    display: 'flex', alignItems: 'center', gap: '6px'
+                                }}
+                            >
+                                <Users size={14} /> Export List (PDF)
+                            </button>
+                        </div>
                     </div>
 
                     {/* Search + Year filter + Refresh */}
@@ -687,17 +1014,36 @@ const PatronDashboard: React.FC = () => {
     };
 
     const renderFeedback = () => (
-        <div className={styles.section} style={sectionStyle}>
-            <h2 className={styles.sectionTitle} style={titleStyle}>Messages & Feedback</h2>
-
-            <div className={styles.filterBar}>
-                <label htmlFor="categoryFilter" style={{ color: dk.textMuted, fontSize: '13px' }}>Category:</label>
-                <select id="categoryFilter" value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}
-                    style={{ ...inputStyle, minWidth: '160px', cursor: 'pointer' }}>
-                    {['all', 'feedback', 'suggestion', 'complaint', 'praise', 'prayer', 'technical', 'other'].map(c => (
-                        <option key={c} value={c}>{c === 'all' ? 'All Categories' : c.charAt(0).toUpperCase() + c.slice(1)}</option>
-                    ))}
-                </select>
+        <div className={styles.section} style={{ ...sectionStyle, padding: '0 16px 16px' }}>
+            <div style={{ 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 100, 
+                background: '#fff', 
+                padding: '16px 0 12px', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: '14px',
+                borderBottom: '1px solid #f0f0f0' 
+            }}>
+                <h2 className={styles.sectionTitle} style={{ ...titleStyle, marginBottom: 0, border: 'none' }}>Member Feedback ({messages.length})</h2>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <select
+                        style={{ ...inputStyle, width: 'auto', padding: '6px 10px', fontSize: '11px' }}
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                    >
+                        <option value="all">All Categories</option>
+                        <option value="Spiritual">Spiritual</option>
+                        <option value="Academic">Academic</option>
+                        <option value="Social">Social</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Leadership">Leadership</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <DashboardControls />
+                </div>
             </div>
 
             {messages.length === 0 ? (
@@ -740,16 +1086,29 @@ const PatronDashboard: React.FC = () => {
     );
 
     const renderGallery = () => (
-        <div className={styles.section} style={sectionStyle}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
-                <h2 className={styles.sectionTitle} style={{ ...titleStyle, margin: 0, padding: 0, border: 'none' }}>Photo Gallery</h2>
-                <div style={{ position: 'relative', minWidth: '200px' }}>
-                    <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#aaa' }} />
-                    <input type="text" placeholder="Search events..." value={gallerySearch}
-                        onChange={(e) => setGallerySearch(e.target.value)}
-                        style={{ ...inputStyle, paddingLeft: '32px', fontSize: '12px', padding: '8px 12px 8px 32px' }}
-                        onFocus={(e) => (e.target.style.borderColor = dk.input.focusBorder)}
-                        onBlur={(e) => (e.target.style.borderColor = dk.input.border)} />
+        <div className={styles.section} style={{ ...sectionStyle, padding: '0 16px 16px' }}>
+            <div style={{ 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 100, 
+                background: '#fff', 
+                padding: '16px 0 12px', 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                marginBottom: '14px',
+                borderBottom: '1px solid #f0f0f0' 
+            }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ position: 'relative', minWidth: '200px' }}>
+                        <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#aaa' }} />
+                        <input type="text" placeholder="Search events..." value={gallerySearch}
+                            onChange={(e) => setGallerySearch(e.target.value)}
+                            style={{ ...inputStyle, paddingLeft: '32px', fontSize: '11px', height: '32px' }}
+                            onFocus={(e) => (e.target.style.borderColor = dk.input.focusBorder)}
+                            onBlur={(e) => (e.target.style.borderColor = dk.input.border)} />
+                    </div>
+                    <DashboardControls />
                 </div>
             </div>
 
@@ -839,8 +1198,22 @@ const PatronDashboard: React.FC = () => {
     );
 
     const renderSettings = () => (
-        <div className={styles.section} style={sectionStyle}>
-            <h2 className={styles.sectionTitle} style={titleStyle}>Account Settings</h2>
+        <div className={styles.section} style={{ ...sectionStyle, padding: '0 16px 16px' }}>
+            <div style={{ 
+                position: 'sticky', 
+                top: 0, 
+                zIndex: 100, 
+                background: '#fff', 
+                padding: '16px 0 12px', 
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px',
+                borderBottom: '1px solid #f0f0f0'
+            }}>
+                <h2 className={styles.sectionTitle} style={{ ...titleStyle, marginBottom: 0, border: 'none' }}>Account Settings</h2>
+                <DashboardControls />
+            </div>
             <div style={{ maxWidth: '420px' }}>
                 <h3 style={{ color: dk.text, marginBottom: '14px', fontSize: '14px' }}>Change Password</h3>
 
@@ -905,6 +1278,7 @@ const PatronDashboard: React.FC = () => {
             case 'dashboard': return renderDashboard();
             case 'feedback': return renderFeedback();
             case 'gallery': return renderGallery();
+            case 'assets': return <PatronAssets />;
             case 'settings': return renderSettings();
             case 'finance': 
             case 'finance-dashboard': return <FinancePanel isPatron initialTab="dashboard" />;
@@ -920,7 +1294,7 @@ const PatronDashboard: React.FC = () => {
             background: '#f5f5f5',
             minHeight: 'calc(100vh - 144px)'
         }}>
-
+            {showWelcome && <WelcomeSplash />}
 
             <div className={styles.adminLayout} style={{ background: '#f5f5f5' }}>
                 <PatronSidebar
