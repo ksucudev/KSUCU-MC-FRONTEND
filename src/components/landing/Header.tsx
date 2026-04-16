@@ -971,8 +971,11 @@ const Header = () => {
               </nav>
             ) : (
               <div className="hidden md:flex items-center flex-1 justify-end pr-4">
-                 <span className="flex items-center gap-2 font-bold text-[#c9a227] tracking-wider text-sm bg-[#370026]/5 px-4 py-1.5 rounded-full border border-[#370026]/10 shadow-sm">
-                   <Crown size={16} /> PATRON WORKSPACE
+                 <span className="flex items-center gap-2 font-bold text-[#c9a227] tracking-widest text-[11px] uppercase bg-white px-5 py-2 rounded-full border border-[#c9a227]/40 shadow-sm" style={{ letterSpacing: '0.12em' }}>
+                   <Crown size={14} strokeWidth={2.5} />
+                   <span style={{ color: '#730051', fontWeight: 700, letterSpacing: '0.08em' }}>KSUCU-MC</span>
+                   <span style={{ color: '#c9a227', opacity: 0.5, fontSize: '10px' }}>•</span>
+                   <span>PATRON PORTAL</span>
                  </span>
               </div>
             )}
