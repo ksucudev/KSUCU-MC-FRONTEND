@@ -93,7 +93,24 @@ const Leadership = () => {
       phone: '+254 100 504 608',
       role: 'ntikoisanaserian@gmail.com',
       image: victoriaImg
-    },
+    }
+  ];
+
+  const patron = {
+    title: 'Patron',
+    name: 'Dr. Rhoda Auni',
+    role: 'Patron, KSUCU-MC',
+    image: 'https://via.placeholder.com/150/730051/FFFFFF?text=Patron'
+  };
+
+  const cmf = {
+    title: 'CMF',
+    name: 'Joylyne Njagi',
+    role: 'CMF, KSUCU-MC',
+    image: 'https://via.placeholder.com/150/730051/FFFFFF?text=CMF'
+  };
+
+  const stemStaff = [
     {
       title: 'STEM Staff',
       name: 'Lyndra Melanie',
@@ -138,6 +155,28 @@ const Leadership = () => {
 
         {/* Main Content */}
         <div className="container">
+
+          {/* Leadership Hierarchy Block */}
+          <section className="section">
+            <div className="section-container">
+              <div className="committee-grid">
+                {[patron, cmf, ...stemStaff].map((member, index) => (
+                  <div key={index} className="profile-card">
+                    <img src={member.image} alt={member.title} className="profile-image"
+                      style={{ objectFit: 'cover', objectPosition: 'top' }} />
+                    <h3>{member.title}</h3>
+                    <p className="profile-name">{member.name}</p>
+                    {member.phone && (
+                      <p className="profile-phone">
+                        <i className="fas fa-phone"></i> {member.phone}
+                      </p>
+                    )}
+                    <p className="role">{member.role}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
 
           {/* Executive Committee Section */}
           <section className="section">
