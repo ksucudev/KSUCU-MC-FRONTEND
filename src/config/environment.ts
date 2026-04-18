@@ -108,12 +108,8 @@ interface ApiConfig {
   };
 }
 
-const isDevelopment = import.meta.env.MODE === 'development' ||
-  window.location.hostname === 'localhost' ||
-  window.location.hostname === '127.0.0.1' ||
-  window.location.hostname.startsWith('192.168.') ||
-  window.location.hostname.startsWith('10.') ||
-  window.location.hostname.endsWith('.local');
+const isDev = import.meta.env.DEV;
+const isProd = import.meta.env.PROD;
 
 const developmentConfig: ApiConfig = {
   baseUrl: '',  // Use relative paths to leverage Vite proxy and avoid CORS issues
@@ -335,7 +331,7 @@ const productionConfig: ApiConfig = {
   }
 };
 
-export const config = isDevelopment ? developmentConfig : productionConfig;
+export const config = isProd ? productionConfig : developmentConfig;
 
 export const getApiUrl = (endpoint: keyof ApiConfig['endpoints'] | string, queryParams?: string): string => {
   // Handle both predefined endpoints and custom paths
@@ -372,4 +368,4 @@ export const getImageUrl = (imagePath: string): string => {
   return `${url}?v=${Date.now()}`;
 };
 
-export const isDevMode = (): boolean => isDevelopment;
+export const isDevMode = (): boolean => isDev;

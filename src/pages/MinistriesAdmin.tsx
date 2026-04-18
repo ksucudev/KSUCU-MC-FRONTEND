@@ -1296,12 +1296,7 @@ const MinistriesAdmin: React.FC = () => {
                                     'Centralized Attendance Management'
                                 }
                             </h2>
-                            {/* Debug info */}
-                            {import.meta.env.DEV && (
-                                <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-                                    DEBUG: Selected Ministry: {selectedMinistry}, View Mode: {viewMode}, Session: {attendanceSession ? 'EXISTS' : 'NONE'}, Active: {attendanceSession?.isActive ? 'YES' : 'NO'}
-                                </div>
-                            )}
+
                             <div className={styles.sessionControls}>
                                 {/* ALWAYS VISIBLE BUTTONS FOR TESTING */}
                                 <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', flexWrap: 'wrap' }}>

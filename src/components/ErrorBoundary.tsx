@@ -29,27 +29,7 @@ class ErrorBoundary extends React.Component<Props, State> {
             timestamp: new Date().toISOString()
         });
         
-        // Send error to backend for logging in production
-        if (import.meta.env.PROD) {
-            try {
-                fetch('/api/log-error', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        error: error.toString(),
-                        stack: error.stack,
-                        errorInfo,
-                        userAgent: navigator.userAgent,
-                        url: window.location.href,
-                        timestamp: new Date().toISOString()
-                    })
-                }).catch(() => {
-                    // Ignore logging errors
-                });
-            } catch (e) {
-                // Ignore logging errors
-            }
-        }
+        // Removed backend logging as per instruction
     }
 
     render() {
