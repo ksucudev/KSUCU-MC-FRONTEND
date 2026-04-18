@@ -271,6 +271,10 @@ const SignIn: React.FC = () => {
                 // Patron login
                 endpoint = getApiUrl('patronLogin');
                 route = '/patron';
+            } else if (processedEmail === 'chairperson@ksucu.ac.ke') {
+                // Chairperson login
+                endpoint = getApiUrl('superAdmin');
+                route = '/chairperson';
             } else if (mapping) {
                 // Admin domain found
                 endpoint = mapping.endpoint;

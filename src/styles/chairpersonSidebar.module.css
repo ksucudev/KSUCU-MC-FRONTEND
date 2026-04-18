@@ -1,0 +1,421 @@
+/* ============================================
+   PATRON SIDEBAR - Premium Executive Design
+   ============================================ */
+
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 100000;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar {
+  position: sticky;
+  top: 52px;
+  left: 0;
+  width: 240px;
+  min-width: 240px;
+  height: calc(100vh - 52px);
+  background: #730051;
+  z-index: 100001;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+
+/* Identity Block (Replaces old header) */
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.15);
+}
+
+.identityBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoCircle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #c9a227;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.logoCircle img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.identityText {
+  display: flex;
+  flex-direction: column;
+}
+
+.brandName {
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.roleBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #c9a227;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 2px;
+}
+
+.closeButton {
+  display: none;
+  background: rgba(255,255,255,0.05);
+  border: none;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+/* Navigation Groups */
+.nav {
+  flex: 1;
+  padding: 4px 0 2px;
+}
+
+.navGroup {
+  margin-bottom: 2px;
+}
+
+.groupHeadTitle {
+  padding: 4px 16px 2px;
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.45);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 2px;
+}
+
+.groupHead {
+  padding: 6px 10px;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 6px;
+}
+
+.groupHead:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.groupHead.active {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-weight: 700;
+}
+
+.groupHeadMain {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.expandTitle {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.menuList {
+  list-style: none;
+  margin: 0;
+  padding: 0 8px;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: rgba(255,255,255,0.7);
+  font-size: 12.5px;
+  text-align: left;
+  transition: all 0.2s ease;
+  gap: 10px;
+  border-radius: 6px;
+  margin-bottom: 1px;
+  position: relative;
+}
+
+.menuItem:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.menuItem.active {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-weight: 700;
+}
+
+.submenuList {
+  padding-left: 12px;
+  margin-bottom: 4px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.submenuItem {
+  font-size: 11.5px;
+  padding: 5px 10px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.menuItem.active .menuIcon {
+  color: #fff;
+}
+
+.menuIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: inherit;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.menuLabel {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Footer Section */
+.sidebarFooter {
+  padding: 8px 8px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.1);
+}
+
+.logoutButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12.5px;
+  transition: all 0.2s;
+}
+
+.logoutButton:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.logoutButton:hover .menuIcon {
+  color: #ef4444;
+}
+
+/* ============================================
+   TABLET - Collapsed icons
+   ============================================ */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .sidebar {
+    width: 72px;
+    min-width: 72px;
+  }
+
+  .sidebarHeader {
+    padding: 16px 0;
+    justify-content: center;
+  }
+
+  .identityText { display: none; }
+  .logoCircle { width: 36px; height: 36px; }
+  
+  .groupHead { display: none; }
+  .menuList { padding: 0 8px; }
+
+  .menuItem {
+    padding: 8px 0;
+    justify-content: center;
+    border-radius: 6px;
+  }
+  
+  .menuItem.active {
+    padding-left: 0;
+    justify-content: center;
+    border-left: none;
+    border-bottom: 2px solid #c9a227;
+  }
+
+  .menuLabel { display: none; }
+  .menuIcon { width: 24px; height: 24px; margin: 0; }
+
+  .logoutButton {
+    padding: 8px 0;
+    justify-content: center;
+  }
+
+  /* Tooltips */
+  .menuItem::after, .logoutButton::after {
+    content: attr(data-label) " " attr(title);
+    position: absolute;
+    left: calc(100% + 12px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #111;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .menuItem:hover::after, .logoutButton:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+/* ============================================
+   MOBILE - Icon Strip to Full Sidebar
+   ============================================ */
+@media (max-width: 768px) {
+  .overlay {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - 64px);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 100000;
+    display: block !important;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 64px; /* match header height */
+    left: 0;
+    height: calc(100dvh - 64px);
+    width: 52px;
+    min-width: unset !important;
+    background: #730051;
+    transform: none;
+    box-shadow: none;
+    overflow-x: hidden;
+    /* Remove padding or identity text when collapsed */
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar.open {
+    width: 240px;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.4);
+    z-index: 100001;
+  }
+
+  /* Identity block changes based on state */
+  .sidebar:not(.open) .sidebarHeader { display: none; }
+
+  /* Hide labels, menus when not open */
+  .sidebar:not(.open) .groupHeadTitle,
+  .sidebar:not(.open) .expandTitle,
+  .sidebar:not(.open) .chevronIcon,
+  .sidebar:not(.open) .menuLabel { display: none; }
+  
+  .sidebar:not(.open) .nav { padding-top: 0; }
+  .sidebar:not(.open) .menuList { padding: 0; }
+  .sidebar:not(.open) .groupHead { padding: 8px 0; justify-content: center; }
+  .sidebar:not(.open) .groupHeadMain { width: 100%; display: flex; justify-content: center; }
+  .sidebar:not(.open) .menuItem {
+    width: 46px;
+    height: 38px;
+    padding: 0;
+    margin: 0 auto 2px auto;
+    justify-content: center;
+    border-radius: 6px;
+  }
+  .sidebar:not(.open) .menuItem.active {
+    background: rgba(255,255,255,0.95);
+    border: none;
+    padding-left: 0;
+  }
+  .sidebar:not(.open) .menuItem.active .menuIcon {
+    color: #730051;
+  }
+  .sidebar:not(.open) .menuIcon { margin: 0; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+  
+  /* Make chevron indicators invisible when closed */
+  .sidebar:not(.open) .submenuList { display: none; }
+
+  /* Logout button */
+  .sidebar:not(.open) .logoutButton {
+    width: 46px; height: 38px; margin: 0 auto; padding: 0; justify-content: center; border: none;
+  }
+  .sidebar:not(.open) .sidebarFooter { padding: 8px 0; display: flex; justify-content: center; }
+
+  .closeButton {
+    display: none !important;
+  }
+}
+
+

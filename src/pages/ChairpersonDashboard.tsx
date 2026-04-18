@@ -7,11 +7,11 @@ import styles from '../styles/superAdmin.module.css';
 import { Menu, X, Search, RefreshCw, User, Mail, Phone, BookOpen, Wallet, Gem, ShieldCheck, Layers, Users, MessageSquare, Bell } from 'lucide-react';
 import { getApiUrl, getImageUrl } from '../config/environment';
 import letterhead from '../assets/letterhead.png';
-import PatronSidebar, { PatronSection } from '../components/PatronSidebar';
+import ChairpersonSidebar, { ChairpersonSection } from '../components/ChairpersonSidebar';
 import { financeApi } from '../services/financeApi';
 import FinancePanel from '../components/finance/FinancePanel';
 import AnalyticsCharts from '../components/patron/AnalyticsCharts';
-import PatronAssets from '../components/patron/PatronAssets';
+import ChairpersonAssets from '../components/patron/PatronAssets';
 import { ET_LIST, MINISTRY_LIST, parseEts, parseMinistries } from '../utils/constants';
 import cuLogo from '../assets/cuLogoUAR.png';
 
@@ -70,10 +70,10 @@ interface Notification {
     type: 'asset' | 'finance' | 'feedback' | 'user';
     timestamp: Date;
     read: boolean;
-    targetSection: PatronSection;
+    targetSection: ChairpersonSection;
 }
 
-const PatronDashboard: React.FC = () => {
+const ChairpersonDashboard: React.FC = () => {
     const navigate = useNavigate();
 
     // Data state
@@ -95,7 +95,7 @@ const PatronDashboard: React.FC = () => {
     const [assets, setAssets] = useState<any[]>([]);
 
     // UI state
-    const [activeSection, setActiveSection] = useState<PatronSection>('dashboard');
+    const [activeSection, setActiveSection] = useState<ChairpersonSection>('dashboard');
     const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedYos, setSelectedYos] = useState<string>('all');
@@ -126,11 +126,11 @@ const PatronDashboard: React.FC = () => {
         verifyAndFetchData();
         
         const handleToggleSidebar = () => setSidebarOpen(prev => !prev);
-        window.addEventListener('togglePatronSidebar', handleToggleSidebar);
-        return () => window.removeEventListener('togglePatronSidebar', handleToggleSidebar);
+        window.addEventListener('toggleChairpersonSidebar', handleToggleSidebar);
+        return () => window.removeEventListener('toggleChairpersonSidebar', handleToggleSidebar);
     }, []);
 
-    const addNotification = (title: string, description: string, type: Notification['type'], target: PatronSection) => {
+    const addNotification = (title: string, description: string, type: Notification['type'], target: ChairpersonSection) => {
         const newNotif: Notification = {
             id: Math.random().toString(36).substr(2, 9),
             title,
@@ -145,12 +145,12 @@ const PatronDashboard: React.FC = () => {
 
     const verifyAndFetchData = async () => {
         try {
-            await axios.get(getApiUrl('patronVerify'), { withCredentials: true });
+            await axios.get(getApiUrl('superAdmin').replace('/login', '/verify'), { withCredentials: true });
             
             // Check for welcome session
-            if (!sessionStorage.getItem('patron_welcomed')) {
+            if (!sessionStorage.getItem('Chairperson_welcomed')) {
                 setShowWelcome(true);
-                sessionStorage.setItem('patron_welcomed', 'true');
+                sessionStorage.setItem('Chairperson_welcomed', 'true');
                 setTimeout(() => setShowWelcome(false), 3000);
             }
 
@@ -172,7 +172,7 @@ const PatronDashboard: React.FC = () => {
 
     const fetchUsers = async (showLoader = false) => {
         if (showLoader) setMembersLoading(true);
-        const response = await axios.get(getApiUrl('patronUsers'), { withCredentials: true });
+        const response = await axios.get(getApiUrl('superAdmin').replace('/login', '/users'), { withCredentials: true });
         const userData = response.data;
 
         setUsers(userData);
@@ -225,7 +225,7 @@ const PatronDashboard: React.FC = () => {
     };
 
     const fetchMessages = async () => {
-        const response = await axios.get(getApiUrl('patronMessages'), { withCredentials: true });
+        const response = await axios.get(getApiUrl('superAdmin').replace('/login', '/messages'), { withCredentials: true });
         const msgs = response.data;
         
         // Track new feedback
@@ -339,11 +339,11 @@ const PatronDashboard: React.FC = () => {
 
     const handleLogout = async () => {
         try {
-            await fetch(getApiUrl('patronLogout'), {
+            await fetch(getApiUrl('superAdmin').replace('/login', '/logout'), {
                 method: 'POST',
                 credentials: 'include'
             });
-            sessionStorage.removeItem('patron_welcomed');
+            sessionStorage.removeItem('Chairperson_welcomed');
             navigate('/');
         } catch (error) {
             console.error('Error logging out:', error);
@@ -369,7 +369,7 @@ const PatronDashboard: React.FC = () => {
 
         setChangingPassword(true);
         try {
-            await axios.post(getApiUrl('patronChangePassword'), {
+            await axios.post(getApiUrl('superAdmin').replace('/login', '/change-password'), {
                 currentPassword,
                 newPassword
             }, { withCredentials: true });
@@ -491,7 +491,7 @@ const PatronDashboard: React.FC = () => {
                     doc.setPage(i);
                     doc.setFontSize(8);
                     doc.setTextColor(100, 100, 100);
-                    doc.text('Generated by KSUCU-MC Patron Dashboard', 15, pageHeight - 10);
+                    doc.text('Generated by KSUCU-MC Chairperson Dashboard', 15, pageHeight - 10);
                     doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 15, pageHeight - 10, { align: 'right' });
                 }
 
@@ -546,8 +546,8 @@ const PatronDashboard: React.FC = () => {
                 <div style={{ marginBottom: '20px' }}>
                     <img src={cuLogo} alt="Logo" style={{ width: '100px', height: '100px', borderRadius: '50%', border: '4px solid #fff', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' }} />
                 </div>
-                <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px', letterSpacing: '-0.5px' }}>Welcome KSUCU-MC Patron</h1>
-                <h2 style={{ fontSize: '24px', fontWeight: '400', opacity: 0.9 }}>Dr Rhoda Auni</h2>
+                <h1 style={{ fontSize: '32px', fontWeight: '800', marginBottom: '8px', letterSpacing: '-0.5px' }}>Welcome KSUCU-MC Chairperson</h1>
+                <h2 style={{ fontSize: '24px', fontWeight: '400', opacity: 0.9 }}>Stanley Otieno</h2>
                 <div style={{ marginTop: '24px', display: 'flex', gap: '8px', justifyContent: 'center' }}>
                     {[0, 1, 2].map(i => (
                         <div key={i} style={{ width: '8px', height: '8px', background: '#fff', borderRadius: '50%', animation: `pulse 1.5s infinite ${i * 0.2}s` }} />
@@ -567,7 +567,7 @@ const PatronDashboard: React.FC = () => {
             maxHeight: '400px', background: '#fff', borderRadius: '12px', 
             boxShadow: '0 8px 32px rgba(0,0,0,0.15)', border: '1px solid #eee', 
             zIndex: 1000, overflowY: 'auto', marginTop: '10px',
-            animation: 'patronFadeIn 0.2s ease'
+            animation: 'ChairpersonFadeIn 0.2s ease'
         }}>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: '700', fontSize: '13px', color: '#333' }}>Notifications ({notifications.filter(n => !n.read).length})</span>
@@ -794,14 +794,14 @@ const PatronDashboard: React.FC = () => {
                             position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
                             zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center',
                             backgroundColor: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(15px)',
-                            padding: '20px', cursor: 'zoom-out', animation: 'patronFadeIn 0.3s ease-out',
+                            padding: '20px', cursor: 'zoom-out', animation: 'ChairpersonFadeIn 0.3s ease-out',
                         }}
                     >
                         <div
                             onClick={e => e.stopPropagation()}
                             style={{
                                 position: 'relative', maxWidth: '95vw', maxHeight: '90vh',
-                                animation: 'patronZoomIn 0.3s cubic-bezier(0.34,1.56,0.64,1)',
+                                animation: 'ChairpersonZoomIn 0.3s cubic-bezier(0.34,1.56,0.64,1)',
                                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                             }}
                         >
@@ -831,11 +831,11 @@ const PatronDashboard: React.FC = () => {
                 )}
 
                 <style>{`
-                    @keyframes patronFadeIn { from { opacity:0 } to { opacity:1 } }
-                    @keyframes patronZoomIn { from { transform:scale(0.95);opacity:0 } to { transform:scale(1);opacity:1 } }
-                    .patron-photo-wrap:hover { transform:scale(1.06) !important; box-shadow:0 6px 20px rgba(115,0,81,0.35) !important; }
-                    .patron-photo-wrap:active { transform:scale(0.95) !important; }
-                    .patron-member-card:hover { box-shadow:0 4px 18px rgba(0,0,0,0.10) !important; }
+                    @keyframes ChairpersonFadeIn { from { opacity:0 } to { opacity:1 } }
+                    @keyframes ChairpersonZoomIn { from { transform:scale(0.95);opacity:0 } to { transform:scale(1);opacity:1 } }
+                    .Chairperson-photo-wrap:hover { transform:scale(1.06) !important; box-shadow:0 6px 20px rgba(115,0,81,0.35) !important; }
+                    .Chairperson-photo-wrap:active { transform:scale(0.95) !important; }
+                    .Chairperson-member-card:hover { box-shadow:0 4px 18px rgba(0,0,0,0.10) !important; }
                 `}</style>
 
                 <div className={styles.section} style={{ ...sectionStyle, padding: '0 16px 16px' }}>
@@ -936,7 +936,7 @@ const PatronDashboard: React.FC = () => {
                             {displayUsers.map(user => (
                                 <div
                                     key={user._id || user.reg}
-                                    className="patron-member-card"
+                                    className="Chairperson-member-card"
                                     style={{
                                         border: '1px solid #dee2e6', borderRadius: '10px',
                                         padding: '16px', marginBottom: '16px',
@@ -950,7 +950,7 @@ const PatronDashboard: React.FC = () => {
 
                                         {/* Profile photo */}
                                         <div
-                                            className="patron-photo-wrap"
+                                            className="Chairperson-photo-wrap"
                                             onClick={() => user.profilePhoto && setShowFullSize(getImageUrl(user.profilePhoto))}
                                             title={user.profilePhoto ? 'Click to view full size' : ''}
                                             style={{
@@ -1125,16 +1125,16 @@ const PatronDashboard: React.FC = () => {
             ) : (
                 <>
                     <style>{`
-                        .patron-gallery-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
-                        @media (min-width: 480px) { .patron-gallery-grid { grid-template-columns: repeat(2, 1fr); } }
-                        @media (min-width: 768px) { .patron-gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
-                        @media (min-width: 1200px) { .patron-gallery-grid { grid-template-columns: repeat(4, 1fr); } }
-                        .patron-gallery-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important; transform: translateY(-2px); }
-                        .patron-gallery-btn:hover { background: #730051 !important; color: #fff !important; border-color: #730051 !important; }
+                        .Chairperson-gallery-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+                        @media (min-width: 480px) { .Chairperson-gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+                        @media (min-width: 768px) { .Chairperson-gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
+                        @media (min-width: 1200px) { .Chairperson-gallery-grid { grid-template-columns: repeat(4, 1fr); } }
+                        .Chairperson-gallery-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.1) !important; transform: translateY(-2px); }
+                        .Chairperson-gallery-btn:hover { background: #730051 !important; color: #fff !important; border-color: #730051 !important; }
                     `}</style>
-                    <div className="patron-gallery-grid">
+                    <div className="Chairperson-gallery-grid">
                         {filteredGallery.map((item, index) => (
-                            <div key={index} className="patron-gallery-card" style={{
+                            <div key={index} className="Chairperson-gallery-card" style={{
                                 background: '#fff',
                                 borderRadius: '12px',
                                 overflow: 'hidden',
@@ -1187,7 +1187,7 @@ const PatronDashboard: React.FC = () => {
                                     }}>{item.event}</h4>
                                     <p style={{ fontSize: '0.7rem', margin: '0 0 8px', color: '#999' }}>{item.date}</p>
                                     <a href={item.link} target="_blank" rel="noopener noreferrer"
-                                        className="patron-gallery-btn"
+                                        className="Chairperson-gallery-btn"
                                         style={{
                                             fontSize: '0.78rem', padding: '6px 0', borderRadius: '8px',
                                             border: `1.5px solid ${P}`, color: P, fontWeight: 600,
@@ -1286,7 +1286,7 @@ const PatronDashboard: React.FC = () => {
             case 'dashboard': return renderDashboard();
             case 'feedback': return renderFeedback();
             case 'gallery': return renderGallery();
-            case 'assets': return <PatronAssets />;
+            case 'assets': return <ChairpersonAssets />;
             case 'settings': return renderSettings();
             case 'finance': 
             case 'finance-dashboard': return <FinancePanel isPatron initialTab="dashboard" />;
@@ -1305,7 +1305,7 @@ const PatronDashboard: React.FC = () => {
             {showWelcome && <WelcomeSplash />}
 
             <div className={styles.adminLayout} style={{ background: '#f5f5f5' }}>
-                <PatronSidebar
+                <ChairpersonSidebar
                     activeSection={activeSection}
                     onSectionChange={setActiveSection}
                     isOpen={sidebarOpen}
@@ -1321,10 +1321,10 @@ const PatronDashboard: React.FC = () => {
                 textAlign: 'center', padding: '12px 16px', fontSize: '11px', color: '#888',
                 borderTop: '1px solid #e0e0e0', background: '#fafafa'
             }}>
-                &copy; {new Date().getFullYear()} KSUCU-MC Patron Portal
+                &copy; {new Date().getFullYear()} KSUCU-MC Chairperson Portal
             </footer>
         </div>
     );
 };
 
-export default PatronDashboard;
+export default ChairpersonDashboard;

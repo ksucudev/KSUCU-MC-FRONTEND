@@ -648,6 +648,8 @@ const Header = () => {
   const activeNav = getActiveNav(location.pathname);
   
   const isPatronDashboard = location.pathname.startsWith('/patron');
+  const isChairpersonDashboard = location.pathname.startsWith('/chairperson');
+  const isDashboard = isPatronDashboard || isChairpersonDashboard;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -796,8 +798,12 @@ const Header = () => {
           <div className="flex items-center h-16 md:h-16 xl:h-20 md:pl-0">
             <button
               onClick={() => {
-                if (isPatronDashboard) {
-                  window.dispatchEvent(new Event('togglePatronSidebar'));
+                if (isDashboard) {
+                  let eventName = 'toggleSidebar';
+                  if (isPatronDashboard) eventName = 'togglePatronSidebar';
+                  else if (isChairpersonDashboard) eventName = 'toggleChairpersonSidebar';
+                  else if (isTreasurerDashboard) eventName = 'toggleTreasurerSidebar';
+                  window.dispatchEvent(new Event(eventName));
                 } else {
                   setIsSidebarExpanded(!isSidebarExpanded);
                 }
@@ -825,7 +831,7 @@ const Header = () => {
             </Link>
 
             {/* Mobile User/Sign In Button */}
-            {!isPatronDashboard && (
+            {!isDashboard && (
               <div className="md:hidden flex-shrink-0">
                 {isAdmin && isPatron ? (
                   <button onClick={() => navigate('/patron')} className="flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 bg-white hover:bg-purple-50 border border-[#730051]/20 rounded-full font-bold text-[#730051] transition-all shadow-sm active:scale-95 whitespace-nowrap">
@@ -878,7 +884,7 @@ const Header = () => {
               </div>
             </Link>
 
-            {!isPatronDashboard ? (
+            {!isDashboard ? (
               <nav className="hidden md:flex items-center flex-1 min-w-0 md:ml-2 lg:ml-4 xl:ml-8">
                 {/* Centered nav links */}
                 <div className="flex-1 flex items-center justify-center gap-0.5 lg:gap-1.5 xl:gap-4 min-w-0">
@@ -975,7 +981,11 @@ const Header = () => {
                    <Crown size={14} strokeWidth={2.5} />
                    <span style={{ color: '#730051', fontWeight: 700, letterSpacing: '0.08em' }}>KSUCU-MC</span>
                    <span style={{ color: '#c9a227', opacity: 0.5, fontSize: '10px' }}>•</span>
-                   <span>PATRON PORTAL</span>
+                   <span>
+                     {isPatronDashboard ? 'PATRON PORTAL' : 
+                      isChairpersonDashboard ? 'CHAIRPERSON PORTAL' : 
+                      'TREASURER PORTAL'}
+                   </span>
                  </span>
               </div>
             )}
@@ -985,7 +995,7 @@ const Header = () => {
 
       {activeDropdown && <div className="fixed inset-0 z-40 hidden md:block" onClick={closeDropdown} />}
 
-      {!isPatronDashboard && (
+      {!isDashboard && (
         <MobileSidebarMenu
           userData={userData}
           activeSessions={activeSessions}

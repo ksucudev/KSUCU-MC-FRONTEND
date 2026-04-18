@@ -79,6 +79,7 @@ const CommitteeAdmin = lazy(() => import("../components/admin"));
 const DirectSignPage = lazy(() => import("./DirectSignPage"));
 const WelcomePage = lazy(() => import("./WelcomePage"));
 const PatronDashboard = lazy(() => import("./PatronDashboard"));
+const ChairpersonDashboard = lazy(() => import("./ChairpersonDashboard"));
 
 
 
@@ -166,6 +167,7 @@ export const router = createBrowserRouter([
             { path: "/classFellowship", element: <ClassFellowship /> },
             { path: "/chat-admin", element: <ChatAdmin /> },
             { path: "/sign-attendance/:shortId", element: <DirectSignPage /> },
+            { path: "/chairperson", element: <ChairpersonDashboard /> },
             { path: "*", element: <NoPage /> }
         ]
     }
