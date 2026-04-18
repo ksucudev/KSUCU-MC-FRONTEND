@@ -30,6 +30,7 @@ export const organizationSections: NavSection[] = [
       { label: 'Media Board', href: '/boards/media' },
       { label: 'Communication Board', href: '/boards/communication' },
       { label: 'Editorial Board', href: '/boards/editorial' },
+      { label: 'Software Dev Board', href: '/boards/software' },
     ],
   },
   {
@@ -77,7 +78,7 @@ export const organizationSections: NavSection[] = [
     items: [
       { label: 'Sub Executive Committee', href: '/other-committees' },
       { label: 'Sub Committee', href: '/other-committees' },
-      { label: 'Software Dev & Maintenance', href: '/other-committees' },
+      { label: 'Software Dev & Maintenance', href: '/boards/software' },
       { label: 'Bible Study Committee', href: '/other-committees#bible-study' },
       { label: 'Best-P Committee', href: '/other-committees#best-p' },
       { label: 'Christian Minds Committee', href: '/christianminds' },
@@ -108,7 +109,7 @@ export const organizationSections: NavSection[] = [
         label: 'Other Committees',
         children: [
           { label: 'Sub Executive Committee', href: '/other-committees' },
-          { label: 'Software Dev & Maintenance', href: '/other-committees' },
+          { label: 'Software Dev & Maintenance', href: '/boards/software' },
           { label: 'Bible Study Committee', href: '/other-committees#bible-study' },
           { label: 'Best-P Committee', href: '/other-committees#best-p' },
           { label: 'Christian Minds Committee', href: '/christianminds' },
@@ -184,6 +185,7 @@ export const headerNavGroups = {
         { label: 'Media Board', href: '/boards/media' },
         { label: 'Communication Board', href: '/boards/communication' },
         { label: 'Editorial Board', href: '/boards/editorial' },
+        { label: 'Software Dev Board', href: '/boards/software' },
       ],
     },
     {

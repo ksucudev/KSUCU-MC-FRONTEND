@@ -22,6 +22,7 @@ const IctBoardPage = lazy(() => import("./IctBoard"));
 const MediaBoardPage = lazy(() => import("./MediaBoard"));
 const CommunicationBoardPage = lazy(() => import("./CommunicationBoard"));
 const EditorialBoardPage = lazy(() => import("./EditorialBoard"));
+const SoftwareDevelopmentBoardPage = lazy(() => import("./SoftwareDevelopmentBoard"));
 const BoardApplicationsAdminPage = lazy(() => import("./BoardApplicationsAdmin"));
 const ChangeDetails = lazy(() => import("../components/changeDetails"));
 const NewsPage = lazy(() => import("./NewsPage"));
@@ -105,6 +106,7 @@ export const router = createBrowserRouter([
             { path: "/boards/media", element: <MediaBoardPage /> },
             { path: "/boards/communication", element: <CommunicationBoardPage /> },
             { path: "/boards/editorial", element: <EditorialBoardPage /> },
+            { path: "/boards/software", element: <SoftwareDevelopmentBoardPage /> },
             { path: "/admin/board-applications", element: <BoardApplicationsAdminPage /> },
             { path: "/changeDetails", element: <ChangeDetails /> },
             { path: "/news", element: <NewsPage /> },

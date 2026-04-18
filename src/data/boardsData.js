@@ -131,4 +131,32 @@ export const boards = [
         },
       ],
     },
+    {
+      id: "software",
+      title: "Software Development & Maintenance Board",
+      icon: "fas fa-code",
+      image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070&auto=format&fit=crop",
+      description: "Building and sustaining the digital backbone of KSUCU-MC — one commit at a time, for the glory of God. Our board covers every facet of the union's technology stack — from design to deployment.",
+      social: [],
+      members: [
+        {
+          role: "Overseer",
+          name: "Eng. Emmanuel Ombogo",
+          phone: "+254 700 000 000",
+          image: "https://via.placeholder.com/80?text=SDB",
+        },
+        {
+          role: "Lead Developer",
+          name: "Eng. Kennedy Mutuku",
+          phone: "+254 700 000 000",
+          image: "https://via.placeholder.com/80?text=SDB2",
+        },
+        {
+          role: "Secretary",
+          name: "Eng. Fancy Nateku",
+          phone: "+254 700 000 000",
+          image: "https://via.placeholder.com/80?text=SDB3",
+        },
+      ]
+    }
 ];
