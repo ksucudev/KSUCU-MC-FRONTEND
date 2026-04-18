@@ -17,6 +17,7 @@ import {
 } from "react-icons/fa";
 
 // Image Imports
+import heroBg from '../assets/IMG_0513.jpg';
 import prayerImg from '../assets/prayer.jpg';
 import discipleshipImg from '../assets/discipleship1.jpeg';
 import christianMindsImg from '../assets/overseer_christianminds.jpg';
@@ -153,7 +154,7 @@ const OtherCommittees = () => {
   return (
     <div className="other-committees-page">
       <div className="page-content">
-        <div className="committees-hero" style={{ backgroundImage: `url('/IMG_0513.jpg')` }}>
+        <div className="committees-hero" style={{ backgroundImage: `url(${heroBg})` }}>
           <div className="committees-hero-overlay">
             <h1>Other Committees</h1>
             <p>Specialized teams serving specific areas of ministry and operations</p>

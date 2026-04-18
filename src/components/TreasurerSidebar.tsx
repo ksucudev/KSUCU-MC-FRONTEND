@@ -10,7 +10,7 @@ import {
   X,
   ShieldCheck
 } from 'lucide-react';
-import styles from '../styles/ChairpersonSidebar.module.css'; // Reusing established styles
+import styles from '../styles/chairpersonSidebar.module.css'; // Reusing established styles
 import cuLogo from '../assets/KSUCU logo updated document.png';
 
 export type TreasurerSection = 'dashboard' | 'transactions' | 'requisitions' | 'assets' | 'reports' | 'mpesa' | 'audit' | 'settings';

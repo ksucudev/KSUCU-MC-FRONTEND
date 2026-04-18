@@ -33,7 +33,7 @@
     content: "";
     position: fixed;
     inset: 0;
-    background-image: url('/IMG_0513.jpg');
+    background-image: url('../assets/IMG_0513.jpg');
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;

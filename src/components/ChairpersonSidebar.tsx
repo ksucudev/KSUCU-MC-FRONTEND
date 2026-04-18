@@ -15,7 +15,7 @@ import {
   Music,
   Briefcase
 } from 'lucide-react';
-import styles from '../styles/ChairpersonSidebar.module.css';
+import styles from '../styles/chairpersonSidebar.module.css';
 import cuLogo from '../assets/KSUCU logo updated document.png';
 import { ET_LIST, MINISTRY_LIST } from '../utils/constants';
 
