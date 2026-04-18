@@ -11,6 +11,8 @@ import lyndraImg from '../assets/IMG-20260130-WA0045.jpg';
 import williamImg from '../assets/IMG-20260129-WA0063.jpg';
 import victoriaImg from '../assets/IMG-20260129-WA0058.jpg';
 import ookoImg from '../assets/IMG-20260130-WA0050.jpg';
+import patronImg from '../assets/IMG_8981.jpg';
+import cmfImg from '../assets/cmf.jpg';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './Leadership.css'
@@ -100,14 +102,14 @@ const Leadership = () => {
     title: 'Patron',
     name: 'Dr. Rhoda Auni',
     role: 'Patron, KSUCU-MC',
-    image: 'https://via.placeholder.com/150/730051/FFFFFF?text=Patron'
+    image: patronImg
   };
 
   const cmf = {
     title: 'CMF',
     name: 'Joylyne Njagi',
     role: 'CMF, KSUCU-MC',
-    image: 'https://via.placeholder.com/150/730051/FFFFFF?text=CMF'
+    image: cmfImg
   };
 
   const stemStaff = [
@@ -156,8 +158,12 @@ const Leadership = () => {
         {/* Main Content */}
         <div className="container">
 
-          {/* Leadership Hierarchy Block */}
+          {/* Top Leadership Block */}
           <section className="section">
+            <div className="section-header">
+              <h2>Top Leadership</h2>
+              <p style={{ color: '#2d2d2d' }}>Our guiding figures providing oversight, mentorship, and spiritual direction for the union</p>
+            </div>
             <div className="section-container">
               <div className="committee-grid">
                 {[patron, cmf, ...stemStaff].map((member, index) => (
