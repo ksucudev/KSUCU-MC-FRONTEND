@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Legend, Cell, AreaChart, Area
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, Legend, Cell
 } from 'recharts';
 
 interface AnalyticsChartsProps {
@@ -12,14 +12,8 @@ interface AnalyticsChartsProps {
   assets: any[];
 }
 
-const EMPTY_MSG: React.CSSProperties = {
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  height: '100%', color: '#bbb', fontSize: '12px', fontStyle: 'italic',
-};
 
-const EmptyState = ({ label }: { label: string }) => (
-  <div style={EMPTY_MSG}>No {label} data yet</div>
-);
+
 
 const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ users, byMinistry, byEt, transactions, assets }) => {
   const P = '#730051';

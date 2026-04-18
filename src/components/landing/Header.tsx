@@ -649,7 +649,8 @@ const Header = () => {
   
   const isPatronDashboard = location.pathname.startsWith('/patron');
   const isChairpersonDashboard = location.pathname.startsWith('/chairperson');
-  const isDashboard = isPatronDashboard || isChairpersonDashboard;
+  const isTreasurerDashboard = location.pathname.startsWith('/treasurer');
+  const isDashboard = isPatronDashboard || isChairpersonDashboard || isTreasurerDashboard;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);

@@ -6,6 +6,7 @@ type FinanceTab = 'dashboard' | 'transactions' | 'newTransaction' | 'requisition
 
 interface FinancePanelProps {
   isPatron?: boolean;
+  initialTab?: FinanceTab | string;
 }
 
 interface Transaction {
@@ -59,11 +60,11 @@ interface FinanceUser {
 }
 
 const FinancePanel: React.FC<FinancePanelProps> = ({ isPatron = false, initialTab }) => {
-  const [activeTab, setActiveTab] = useState<FinanceTab>(initialTab || 'dashboard');
+  const [activeTab, setActiveTab] = useState<FinanceTab>((initialTab as FinanceTab) || 'dashboard');
 
   useEffect(() => {
     if (initialTab) {
-      setActiveTab(initialTab);
+      setActiveTab(initialTab as FinanceTab);
     }
   }, [initialTab]);
 

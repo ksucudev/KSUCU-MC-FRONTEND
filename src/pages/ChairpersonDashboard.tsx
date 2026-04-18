@@ -4,7 +4,7 @@ import axios from 'axios';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import styles from '../styles/superAdmin.module.css';
-import { Menu, X, Search, RefreshCw, User, Mail, Phone, BookOpen, Wallet, Gem, ShieldCheck, Layers, Users, MessageSquare, Bell } from 'lucide-react';
+import { X, Search, RefreshCw, User, Mail, Phone, BookOpen, Wallet, Gem, ShieldCheck, Layers, Users, MessageSquare, Bell } from 'lucide-react';
 import { getApiUrl, getImageUrl } from '../config/environment';
 import letterhead from '../assets/letterhead.png';
 import ChairpersonSidebar, { ChairpersonSection } from '../components/ChairpersonSidebar';
@@ -12,7 +12,7 @@ import { financeApi } from '../services/financeApi';
 import FinancePanel from '../components/finance/FinancePanel';
 import AnalyticsCharts from '../components/patron/AnalyticsCharts';
 import ChairpersonAssets from '../components/patron/PatronAssets';
-import { ET_LIST, MINISTRY_LIST, parseEts, parseMinistries } from '../utils/constants';
+import { parseEts, parseMinistries } from '../utils/constants';
 import cuLogo from '../assets/cuLogoUAR.png';
 
 interface User {
@@ -507,7 +507,7 @@ const ChairpersonDashboard: React.FC = () => {
     const P = '#730051';       // primary purple
     const PL = '#8a0062';      // lighter purple
     const R = '#ef4444';       // red for feedback/alerts
-    const PBg = '#faf5f8';     // faint purple tint for backgrounds
+
     const dk = {
         card: '#ffffff',
         cardBorder: '#e8e8e8',
