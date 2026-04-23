@@ -10,23 +10,22 @@
   line-height: 1.7;
 }
 
-/* Hero Section: Centered and Responsive (Matching Itumbe Resort Structure) */
+/* Hero Section: Centered and Responsive  */
 .heroSection {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* Matching the exact structural behavior of Itumbe reference */
-  height: clamp(300px, 35vh, 400px); 
+  height: clamp(400px, 60vh, 700px); /* Matching choir hero size */
   width: 100%;
   padding: 0 4%; 
   margin: 0; 
   
   /* Retaining Praise and Worship Identity */
-  background-image: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), var(--hero-bg);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), var(--hero-bg);
   background-size: cover; 
   /* Shifted perfectly to keep the faces of the people fully visible */
-  background-position: center 22%; 
+  background-position: center 58%; 
   background-repeat: no-repeat;
   color: #ffffff;
   text-align: center;
