@@ -13,7 +13,12 @@ const Eset: React.FC = () => {
 
             {/* Hero Banner */}
             <section className={styles.etPageHero}>
-                <img src={ESET_IMG} alt="ESET" className={styles.pageHeroImg} />
+                <img 
+                    src={ESET_IMG} 
+                    alt="ESET" 
+                    className={styles.pageHeroImg} 
+                    style={{ '--hero-position': 'center 35%' } as React.CSSProperties} 
+                />
                 <div className={styles.pageHeroContent}>
                     <h1 className={styles.heroTitle}>Eastern Evangelistic Team</h1>
                 </div>

@@ -13,7 +13,12 @@ const Rivet: React.FC = () => {
 
             {/* Hero Banner */}
             <section className={styles.etPageHero}>
-                <img src={RIVET_IMG} alt="RIVET" className={styles.pageHeroImg} />
+                <img 
+                    src={RIVET_IMG} 
+                    alt="RIVET" 
+                    className={styles.pageHeroImg} 
+                    style={{ '--hero-position': 'center 35%' } as React.CSSProperties} 
+                />
                 <div className={styles.pageHeroContent}>
                     <h1 className={styles.heroTitle}>Rift Valley Evangelistic Team</h1>
                 </div>

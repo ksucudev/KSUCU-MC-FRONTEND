@@ -13,7 +13,12 @@ const Weso: React.FC = () => {
 
             {/* Hero Banner */}
             <section className={styles.etPageHero}>
-                <img src={WESO_IMG} alt="WESO" className={styles.pageHeroImg} />
+                <img 
+                    src={WESO_IMG} 
+                    alt="WESO" 
+                    className={styles.pageHeroImg} 
+                    style={{ '--hero-position': 'center 50%' } as React.CSSProperties} 
+                />
                 <div className={styles.pageHeroContent}>
                     <h1 className={styles.heroTitle}>Western Evangelistic Students Outreach</h1>
                 </div>

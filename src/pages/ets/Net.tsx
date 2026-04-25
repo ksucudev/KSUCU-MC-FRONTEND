@@ -13,7 +13,12 @@ const Net: React.FC = () => {
 
             {/* Hero Banner */}
             <section className={styles.etPageHero}>
-                <img src={NET_IMG} alt="NET" className={styles.pageHeroImg} />
+                <img 
+                    src={NET_IMG} 
+                    alt="NET" 
+                    className={styles.pageHeroImg} 
+                    style={{ '--hero-position': 'center 29%' } as React.CSSProperties} 
+                />
                 <div className={styles.pageHeroContent}>
                     <h1 className={styles.heroTitle}>Nyanza Evangelistic Team</h1>
                 </div>

@@ -141,7 +141,7 @@
 
 /* Individual Page Styles Extensions */
 .etPageHero {
-    height: 350px;
+    height: 500px;
     position: relative;
     overflow: hidden;
 }
@@ -150,6 +150,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: var(--hero-position, center 45%);
 }
 
 .pageHeroContent {
@@ -301,6 +302,10 @@
 
     .ctaBox {
         padding: 30px 20px;
+    }
+
+    .etPageHero {
+        height: 300px;
     }
 
     .ctaTitle {

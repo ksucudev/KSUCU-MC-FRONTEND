@@ -13,7 +13,12 @@ const Cet: React.FC = () => {
 
             {/* Hero Banner */}
             <section className={styles.etPageHero}>
-                <img src={CET_IMG} alt="CET" className={styles.pageHeroImg} />
+                <img 
+                    src={CET_IMG} 
+                    alt="CET" 
+                    className={styles.pageHeroImg} 
+                    style={{ '--hero-position': 'center 35%' } as React.CSSProperties} 
+                />
                 <div className={styles.pageHeroContent}>
                     <h1 className={styles.heroTitle}>Central Evangelistic Team</h1>
                 </div>

@@ -120,7 +120,7 @@ const Footer = () => {
                 })}
               </div>
               <p className="text-sm text-purple-200">
-                Affiliated to <span className="font-semibold text-white">FOCUS Kenya</span>
+                Member of <span className="font-semibold text-white">FOCUS Kenya</span>
               </p>
               <p className="text-xs text-purple-300 mt-1">
                 Fellowship of Christian Unions
